@@ -1,0 +1,24 @@
+:root {
+  --nx-bg: #f4f6f8;
+  --nx-bg-elevated: #ffffff;
+  --nx-ink: #12151a;
+  --nx-ink-muted: #5c6570;
+  --nx-border: #d7dde3;
+  --nx-accent: #0f766e;
+  --nx-accent-soft: #ccfbf1;
+  --nx-danger: #b42318;
+  --nx-font-display: "Satoshi", "General Sans", "Avenir Next", system-ui, sans-serif;
+  --nx-font-body: "Satoshi", "General Sans", "Avenir Next", system-ui, sans-serif;
+  --nx-radius-md: 10px;
+}
+
+.dark {
+  --nx-bg: #0e1116;
+  --nx-bg-elevated: #171b22;
+  --nx-ink: #e8ecf1;
+  --nx-ink-muted: #9aa3ad;
+  --nx-border: #2a313c;
+  --nx-accent: #2dd4bf;
+  --nx-accent-soft: #134e4a;
+  --nx-danger: #f97066;
+}

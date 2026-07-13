@@ -1,0 +1,28 @@
+{
+  "name": "@nexiora/worker",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Nexiora AI background workers (BullMQ) — Phase 0 bootstrap",
+  "scripts": {
+    "dev": "tsx watch src/main.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/main.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "echo \"lint: worker ok\"",
+    "test": "vitest run --passWithNoTests",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "@nexiora/search-core": "workspace:*",
+    "@nexiora/shared": "workspace:*",
+    "ioredis": "^5.4.2",
+    "pino": "^9.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "rimraf": "^6.0.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}

@@ -1,0 +1,146 @@
+openapi: 3.1.0
+info:
+  title: Nexiora AI API
+  version: 0.1.0
+  description: |
+    Nova Search — AI Knowledge Platform API.
+    Phase 0 exposes health, readiness, and identity status.
+    Phase 1 adds POST /v1/search and streaming.
+servers:
+  - url: http://localhost:3001
+    description: Local
+paths:
+  /health:
+    get:
+      tags: [health]
+      summary: Liveness probe
+      responses:
+        "200":
+          description: Process is alive
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+  /ready:
+    get:
+      tags: [health]
+      summary: Readiness probe
+      responses:
+        "200":
+          description: Dependency checks
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReadyResponse"
+  /v1/auth/status:
+    get:
+      tags: [auth]
+      summary: Identity provider configuration status
+      responses:
+        "200":
+          description: Clerk configuration (no secrets)
+  /v1/auth/me:
+    get:
+      tags: [auth]
+      summary: Current user
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: User projection
+        "401":
+          description: Unauthorized
+  /v1/creator/dashboard:
+    get:
+      tags: [creator]
+      summary: Personalized Creator Intelligence dashboard
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Greeting, opportunities, trends, coach tips (prediction|signal|verified)
+        "401":
+          description: Unauthorized
+  /v1/creator/profile:
+    get:
+      tags: [creator]
+      summary: Get or create Creator profile
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Creator profile + permissions
+    put:
+      tags: [creator]
+      summary: Update Creator profile
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Updated profile
+  /v1/creator/permissions:
+    patch:
+      tags: [creator]
+      summary: Grant or revoke data permissions
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Updated permissions map
+  /v1/creator/opportunities:
+    get:
+      tags: [creator]
+      summary: Ranked content opportunities with scores
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Opportunity list
+  /v1/creator/ideas:
+    post:
+      tags: [creator]
+      summary: Generate multi-format content idea pack
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Idea pack (prediction-labeled)
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    apiKey:
+      type: apiKey
+      in: header
+      name: X-Api-Key
+  schemas:
+    HealthResponse:
+      type: object
+      required: [status, service, version, timestamp]
+      properties:
+        status:
+          type: string
+          enum: [ok, degraded, error]
+        service:
+          type: string
+        version:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+    ReadyResponse:
+      type: object
+      required: [status, checks, timestamp]
+      properties:
+        status:
+          type: string
+          enum: [ready, not_ready]
+        checks:
+          type: object
+          additionalProperties:
+            type: boolean
+        timestamp:
+          type: string
+          format: date-time

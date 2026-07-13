@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  background-color: var(--nx-bg);
+  color: var(--nx-ink);
+}
+
+/* Atmospheric paper grid — not a flat single-color wash */
+.nx-atmosphere {
+  background-color: var(--nx-bg);
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -10%, var(--nx-accent-soft), transparent 55%),
+    linear-gradient(var(--nx-border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--nx-border) 1px, transparent 1px);
+  background-size: auto, 48px 48px, 48px 48px;
+  background-position: center, center, center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Creator Intelligence — restrained glass surfaces */
+.creator-glass {
+  background: color-mix(in srgb, var(--nx-bg-elevated) 78%, transparent);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--nx-border) 80%, transparent);
+}

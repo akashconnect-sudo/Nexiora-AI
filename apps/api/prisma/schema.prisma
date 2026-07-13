@@ -1,0 +1,496 @@
+/**
+ * Prisma schema for Nexiora AI / Nova Search.
+ * Phase 0: core identity, tenancy, search, billing, audit tables.
+ * See docs/planning/04-DATABASE-SCHEMA.md for full design.
+ */
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum GlobalRole {
+  USER
+  ADMIN
+  MODERATOR
+  SUPPORT
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  BANNED
+  PENDING_DELETION
+}
+
+enum WorkspaceType {
+  PERSONAL
+  TEAM
+  ORGANIZATION
+}
+
+enum WorkspaceRole {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+enum SearchMode {
+  UNIVERSAL
+  RESEARCH
+  NEWS
+  CODE
+  ACADEMIC
+  CREATOR
+  SHOPPING
+  TRAVEL
+  JOBS
+  MAPS
+  PEOPLE
+  COMPANIES
+  HEALTHCARE
+  FINANCE
+}
+
+enum SearchStatus {
+  PENDING
+  RETRIEVING
+  GENERATING
+  COMPLETED
+  FAILED
+  PARTIAL
+}
+
+enum SourceType {
+  WEB
+  NEWS
+  ACADEMIC
+  GOVERNMENT
+  DOCS
+  GITHUB
+  YOUTUBE
+  BLOG
+  SOCIAL
+  REDDIT
+  HN
+  PDF
+  IMAGE
+  VIDEO
+  OTHER
+}
+
+model User {
+  id              String     @id @default(uuid()) @db.Uuid
+  clerkId         String?    @unique
+  email           String     @unique
+  emailVerifiedAt DateTime?
+  displayName     String?
+  avatarUrl       String?
+  locale          String     @default("en")
+  region          String?
+  theme           String     @default("system")
+  safeSearch      String     @default("moderate")
+  adultFilter     Boolean    @default(true)
+  role            GlobalRole @default(USER)
+  status          UserStatus @default(ACTIVE)
+  lastLoginAt     DateTime?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  deletedAt       DateTime?
+
+  workspaces    WorkspaceMember[]
+  sessions      SearchSession[]
+  collections   Collection[]
+  bookmarks     Bookmark[]
+  notes         Note[]
+  apiKeys       ApiKey[]
+  subscription  Subscription?
+  notifications Notification[]
+  auditLogs     AuditLog[]
+  ownedWorkspaces Workspace[] @relation("WorkspaceOwner")
+  creatorProfile CreatorProfile?
+}
+
+model Workspace {
+  id        String        @id @default(uuid()) @db.Uuid
+  name      String
+  slug      String        @unique
+  type      WorkspaceType @default(PERSONAL)
+  ownerId   String        @db.Uuid
+  settings  Json          @default("{}")
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  deletedAt DateTime?
+
+  owner       User              @relation("WorkspaceOwner", fields: [ownerId], references: [id])
+  members     WorkspaceMember[]
+  collections Collection[]
+}
+
+model WorkspaceMember {
+  id          String        @id @default(uuid()) @db.Uuid
+  workspaceId String        @db.Uuid
+  userId      String        @db.Uuid
+  role        WorkspaceRole @default(MEMBER)
+  createdAt   DateTime      @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+
+  @@unique([workspaceId, userId])
+}
+
+model SearchSession {
+  id              String       @id @default(uuid()) @db.Uuid
+  userId          String?      @db.Uuid
+  workspaceId     String?      @db.Uuid
+  query           String
+  normalizedQuery String
+  intent          String?
+  mode            SearchMode   @default(UNIVERSAL)
+  filters         Json         @default("{}")
+  status          SearchStatus @default(PENDING)
+  isPrivate       Boolean      @default(false)
+  client          String?
+  ipHash          String?
+  userAgent       String?
+  latencyMs       Int?
+  costMicros      BigInt?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  deletedAt       DateTime?
+
+  user   User?         @relation(fields: [userId], references: [id])
+  answer Answer?
+  events SearchEvent[]
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([normalizedQuery, createdAt(sort: Desc)])
+}
+
+model Answer {
+  id                 String    @id @default(uuid()) @db.Uuid
+  searchSessionId    String    @unique @db.Uuid
+  summary            String    @db.Text
+  detailedMarkdown   String    @db.Text
+  confidence         Decimal   @db.Decimal(5, 2)
+  model              String
+  language           String    @default("en")
+  verificationStatus String    @default("unverified")
+  finishedAt         DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  session   SearchSession @relation(fields: [searchSessionId], references: [id])
+  citations Citation[]
+}
+
+model Citation {
+  id           String     @id @default(uuid()) @db.Uuid
+  answerId     String     @db.Uuid
+  ordinal      Int
+  title        String
+  url          String
+  canonicalUrl String
+  snippet      String     @db.Text
+  domain       String
+  sourceType   SourceType
+  isOfficial   Boolean    @default(false)
+  trustScore   Decimal    @db.Decimal(5, 2)
+  confidence   Decimal    @db.Decimal(5, 2)
+  publishedAt  DateTime?
+  retrievedAt  DateTime   @default(now())
+  author       String?
+  language     String?
+  faviconUrl   String?
+  metadata     Json       @default("{}")
+
+  answer Answer @relation(fields: [answerId], references: [id])
+
+  @@index([domain])
+  @@index([answerId, ordinal])
+}
+
+model SearchEvent {
+  id        String   @id @default(uuid()) @db.Uuid
+  searchId  String   @db.Uuid
+  type      String
+  payload   Json
+  createdAt DateTime @default(now())
+
+  session SearchSession @relation(fields: [searchId], references: [id])
+
+  @@index([searchId, createdAt])
+}
+
+model Collection {
+  id          String    @id @default(uuid()) @db.Uuid
+  userId      String    @db.Uuid
+  workspaceId String?   @db.Uuid
+  name        String
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  user      User              @relation(fields: [userId], references: [id])
+  workspace Workspace?        @relation(fields: [workspaceId], references: [id])
+  items     CollectionItem[]
+}
+
+model CollectionItem {
+  id           String   @id @default(uuid()) @db.Uuid
+  collectionId String   @db.Uuid
+  searchId     String?  @db.Uuid
+  citationId   String?  @db.Uuid
+  noteId       String?  @db.Uuid
+  position     Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  collection Collection @relation(fields: [collectionId], references: [id])
+}
+
+model Bookmark {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @db.Uuid
+  url       String
+  title     String
+  searchId  String?   @db.Uuid
+  createdAt DateTime  @default(now())
+  deletedAt DateTime?
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+model Note {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @db.Uuid
+  searchId  String?   @db.Uuid
+  title     String?
+  body      String    @db.Text
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model SavedSearch {
+  id        String     @id @default(uuid()) @db.Uuid
+  userId    String     @db.Uuid
+  query     String
+  filters   Json       @default("{}")
+  mode      SearchMode @default(UNIVERSAL)
+  notify    Boolean    @default(false)
+  createdAt DateTime   @default(now())
+}
+
+model NewsItem {
+  id          String    @id @default(uuid()) @db.Uuid
+  externalId  String    @unique
+  title       String
+  url         String
+  source      String
+  category    String
+  country     String?
+  publishedAt DateTime
+  summary     String?   @db.Text
+  imageUrl    String?
+  trustScore  Decimal?  @db.Decimal(5, 2)
+  createdAt   DateTime  @default(now())
+
+  @@index([category, publishedAt(sort: Desc)])
+  @@index([country, publishedAt(sort: Desc)])
+}
+
+model TrendSignal {
+  id         String   @id @default(uuid()) @db.Uuid
+  topic      String
+  score      Decimal  @db.Decimal(10, 2)
+  region     String?
+  source     String
+  capturedAt DateTime @default(now())
+
+  @@index([region, capturedAt(sort: Desc)])
+}
+
+model SourceTrust {
+  domain      String   @id
+  displayName String?
+  isOfficial  Boolean  @default(false)
+  category    String?
+  baseTrust   Decimal  @db.Decimal(5, 2)
+  flags       String[] @default([])
+  updatedAt   DateTime @updatedAt
+}
+
+model Plan {
+  id                String         @id
+  name              String
+  monthlyPriceCents Int
+  entitlements      Json
+  stripePriceId     String?
+  subscriptions     Subscription[]
+}
+
+model Subscription {
+  id               String    @id @default(uuid()) @db.Uuid
+  userId           String    @unique @db.Uuid
+  planId           String
+  status           String
+  stripeCustomerId String?   @unique
+  stripeSubId      String?   @unique
+  currentPeriodEnd DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+  plan Plan @relation(fields: [planId], references: [id])
+}
+
+model ApiKey {
+  id         String    @id @default(uuid()) @db.Uuid
+  userId     String    @db.Uuid
+  name       String
+  keyPrefix  String
+  keyHash    String
+  scopes     String[]
+  lastUsedAt DateTime?
+  expiresAt  DateTime?
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([keyPrefix])
+}
+
+model UsageRecord {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @db.Uuid
+  apiKeyId   String?  @db.Uuid
+  metric     String
+  quantity   Int
+  costMicros BigInt   @default(0)
+  day        DateTime @db.Date
+  createdAt  DateTime @default(now())
+
+  @@index([userId, day])
+  @@index([apiKeyId, day])
+}
+
+model AuditLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  actorId    String?  @db.Uuid
+  action     String
+  resource   String
+  resourceId String?
+  ipHash     String?
+  metadata   Json     @default("{}")
+  createdAt  DateTime @default(now())
+
+  actor User? @relation(fields: [actorId], references: [id])
+
+  @@index([createdAt(sort: Desc)])
+  @@index([actorId, createdAt(sort: Desc)])
+}
+
+model ModerationCase {
+  id         String   @id @default(uuid()) @db.Uuid
+  type       String
+  status     String
+  payload    Json
+  openedBy   String?
+  resolvedBy String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Notification {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @db.Uuid
+  type      String
+  title     String
+  body      String
+  readAt    DateTime?
+  payload   Json      @default("{}")
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+/// Creator Intelligence — consented profile + DNA snapshot.
+model CreatorProfile {
+  id                     String   @id @default(uuid()) @db.Uuid
+  userId                 String   @unique @db.Uuid
+  displayName            String?
+  niche                  String?
+  language               String   @default("en")
+  country                String?
+  speakingStyle          String?
+  preferredLengthMinutes Int?
+  permissions            Json     @default("{}")
+  onboardingCompletedAt  DateTime?
+  youtubeChannelId       String?
+  youtubeConnectedAt     DateTime?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  user User       @relation(fields: [userId], references: [id])
+  dna  CreatorDna?
+
+  @@index([niche])
+}
+
+model CreatorDna {
+  id                   String   @id @default(uuid()) @db.Uuid
+  creatorProfileId     String   @unique @db.Uuid
+  favoriteTopics       String[] @default([])
+  uploadFrequency      String?
+  videoLengthMinutes   Float?
+  audienceLocations    String[] @default([])
+  audienceInterests    String[] @default([])
+  thumbnailStyle       String?
+  titleStyle           String?
+  seoStyle             String?
+  bestPerformingTopics String[] @default([])
+  uploadTiming         String?
+  avgViews             Float?
+  avgCtr               Float?
+  avgWatchTimeSec      Float?
+  avgRetention         Float?
+  successfulKeywords   String[] @default([])
+  audienceQuestions    String[] @default([])
+  contentCategories    String[] @default([])
+  competitorOverlap    String[] @default([])
+  /// Metrics sourced from consented YouTube APIs vs inferred signals
+  metricsProvenance    String   @default("inferred")
+  updatedAt            DateTime @updatedAt
+  createdAt            DateTime @default(now())
+
+  profile CreatorProfile @relation(fields: [creatorProfileId], references: [id])
+}
+
+model CreatorOpportunity {
+  id            String   @id @default(uuid()) @db.Uuid
+  userId        String   @db.Uuid
+  topic         String
+  why           String   @db.Text
+  kind          String
+  scores        Json
+  sources       Json     @default("[]")
+  bestUploadWindow String?
+  expiresAt     DateTime?
+  createdAt     DateTime @default(now())
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([topic])
+}

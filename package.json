@@ -1,0 +1,29 @@
+{
+  "name": "nexiora-ai",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Nexiora AI — Nova Search knowledge platform monorepo",
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "turbo run dev --parallel",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,yml,yaml}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,yml,yaml}\"",
+    "db:generate": "pnpm --filter @nexiora/api exec prisma generate",
+    "db:migrate": "pnpm --filter @nexiora/api exec prisma migrate dev",
+    "db:push": "pnpm --filter @nexiora/api exec prisma db push",
+    "clean": "turbo run clean && rimraf node_modules"
+  },
+  "devDependencies": {
+    "prettier": "^3.4.2",
+    "rimraf": "^6.0.1",
+    "turbo": "^2.3.3",
+    "typescript": "^5.7.2"
+  }
+}

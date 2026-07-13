@@ -1,0 +1,40 @@
+# Dependencies
+node_modules
+.pnpm-store
+
+# Builds
+dist
+build
+.next
+out
+.turbo
+*.tsbuildinfo
+
+# Env / secrets
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# IDE / OS
+.idea
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db
+
+# Logs / coverage
+coverage
+*.log
+logs
+
+# Prisma
+apps/api/prisma/*.db
+apps/api/prisma/*.db-journal
+
+# Electron / mobile
+apps/desktop/release
+apps/mobile/.expo
+
+# Generated
+packages/api-client/src/generated
