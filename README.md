@@ -1,41 +1,90 @@
 # Nexiora AI
 
-**Nova Search** — AI Knowledge Platform monorepo.
+> AI-powered Knowledge Search Platform built with modern technologies.
 
-> Planning package: [`docs/planning/00-INDEX.md`](docs/planning/00-INDEX.md)  
-> Phase 0 (Foundation) is in progress / completing.
+## 🌐 Live Demo
 
-## Stack
+**Website:** https://nexiora-ai-lac.vercel.app/
+
+---
+
+## 🚀 Overview
+
+Nexiora AI is a modern AI Knowledge Search Platform designed to provide fast, intelligent, and scalable search experiences. It is built using a monorepo architecture with Next.js, NestJS, PostgreSQL, OpenSearch, and Qdrant.
+
+---
+
+## ✨ Features
+
+- 🔍 AI-Powered Semantic Search
+- ⚡ High Performance Search Engine
+- 🧠 Intelligent Ranking & Deduplication
+- 🔐 Secure Authentication
+- 📊 Scalable Architecture
+- 🎨 Modern Responsive UI
+- 📦 Monorepo Structure
+- 🚀 Production Ready
+
+---
+
+## 🌐 Live Website
+
+👉 https://nexiora-ai-lac.vercel.app/
+
+---
+
+# Tech Stack
 
 | Layer | Technology |
-|-------|------------|
+|--------|------------|
 | Monorepo | Turborepo + pnpm |
-| API | NestJS · Prisma · PostgreSQL · Redis |
-| Search infra | OpenSearch · Qdrant |
-| Web | Next.js 15 · React 19 · Tailwind · `@nexiora/ui` |
-| Auth | Clerk behind `IdentityProviderPort` |
-| Workers | Node worker process (BullMQ in Phase 1) |
+| Frontend | Next.js 15, React 19, Tailwind CSS |
+| Backend | NestJS |
+| Database | PostgreSQL + Prisma |
+| Cache | Redis |
+| Search | OpenSearch + Qdrant |
+| Authentication | Clerk |
+| Workers | BullMQ |
 
-## Packages
+---
 
-| Package | Role |
-|---------|------|
-| `@nexiora/shared` | Zod contracts, plans, error codes |
-| `@nexiora/search-core` | Pure ranking / dedupe / normalize |
-| `@nexiora/ui` | Design tokens + primitives |
-| `@nexiora/api` | NestJS modular monolith |
-| `@nexiora/web` | Marketing + app shell |
-| `@nexiora/worker` | Background jobs bootstrap |
+# Project Structure
 
-## Phase gate
+```
+apps/
+ ├── web
+ ├── api
+ └── worker
+
+packages/
+ ├── shared
+ ├── search-core
+ └── ui
+```
+
+---
+
+# Development Status
 
 | Phase | Status |
-|-------|--------|
-| Planning | Approved |
-| Phase 0 Foundation | Complete |
-| Phase 1 Core Search MVP | Complete |
-| Phase 2 Trust & Modes | Next |
+|--------|--------|
+| Planning | ✅ Approved |
+| Foundation | ✅ Complete |
+| Core Search MVP | ✅ Complete |
+| Trust & Modes | 🚧 In Progress |
 
-## License
+---
 
-Proprietary — All rights reserved.
+## 🚀 Getting Started
+
+```bash
+pnpm install
+
+pnpm dev
+```
+
+---
+
+## 📄 License
+
+Proprietary — All Rights Reserved.
