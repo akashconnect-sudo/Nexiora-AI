@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { ThemeProvider } from '@/components/theme-provider';
+import { Providers } from '@/components/providers';
 import { defaultSeo, siteConfig } from '@/content/site';
 import { buildMetadata, organizationJsonLd, softwareJsonLd } from '@/lib/seo';
 import '@nexiora/ui/styles.css';
@@ -39,7 +39,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="min-h-screen bg-nx-bg font-body text-nx-ink antialiased">
-        <ThemeProvider>{children}</ThemeProvider>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

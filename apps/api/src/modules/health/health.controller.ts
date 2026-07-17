@@ -8,6 +8,18 @@ import { HealthService } from './health.service';
 export class HealthController {
   constructor(private readonly health: HealthService) {}
 
+  @Get()
+  @ApiOperation({ summary: 'API prefix index' })
+  getRoot() {
+    return {
+      name: 'Nexiora AI API',
+      status: 'ok',
+      health: '/health',
+      docs: '/docs',
+      web: 'http://localhost:3000',
+    };
+  }
+
   @Get('health')
   @ApiOperation({ summary: 'Liveness probe' })
   @ApiOkResponse({ description: 'Process is alive' })

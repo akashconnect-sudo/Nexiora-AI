@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Central marketing copy for Nexiora AI / Nova Search.
  * Written for search engines and readers — concrete claims, no filler slogans.
  */
@@ -182,17 +182,17 @@ export const featuresCopy = {
 export const pricingCopy = {
   title: 'Pricing',
   description:
-    'Simple Nexiora AI plans for Nova Search: Free for evaluation, Pro for daily research, Business for teams.',
+    'Simple Nexiora AI plans for Nova Search: Free for evaluation, Pro for ongoing research, Business for teams.',
   intro:
-    'Usage is metered by daily searches and features. Start free, upgrade when quotas or modes become part of your weekly workflow.',
+    'Start with limited search access, then upgrade when Nova becomes part of your regular workflow.',
   plans: [
     {
       id: 'free',
       name: 'Free',
-      price: '$0',
-      period: 'forever',
-      blurb: 'Evaluate Nova Search on real queries.',
-      points: ['Limited daily searches', 'Universal mode', 'Citations and confidence', 'No card required'],
+      price: '$2',
+      period: 'one-time',
+      blurb: 'Activate Free access with a $2 payment, then use limited searches.',
+      points: ['$2 activation payment required', 'Limited Search', 'Universal mode', 'Citations and confidence'],
     },
     {
       id: 'pro',
@@ -213,15 +213,23 @@ export const pricingCopy = {
     },
   ],
   footnote:
-    'Enterprise SSO, audit exports, and dedicated limits are scoped per contract. Stripe checkout activates when billing keys are configured in your environment.',
+    'Free access requires a one-time $2 activation payment. Pro and Business renew monthly until cancelled. Stripe checkout activates when billing keys are configured.',
 } as const;
 
 export const aboutCopy = {
   title: 'About Nexiora AI',
   description: 'Nexiora AI builds Nova Search, an AI knowledge platform focused on cited, checkable answers.',
+  eyebrow: 'Built for decisions that deserve evidence',
+  lead: 'We are building a calmer, more accountable way to search: answers that move quickly without leaving their evidence behind.',
   body: [
     'Nexiora AI started from a practical frustration: generative tools sound fluent while hiding weak evidence, and web search still expects every reader to be their own research assistant.',
     'Nova Search is our answer. The product retrieves from multiple live sources, ranks for trust and freshness, and refuses to present an answer without a trail you can inspect.',
     'We build for people who ship decisions—researchers, analysts, editors, and operators—not for demo screenshots. Accuracy beats theatrics. When sources disagree, the UI should show that tension instead of smoothing it away.',
   ],
+  principles: [
+    { number: '01', title: 'Evidence is the interface', body: 'Every useful claim should lead back to a source you can inspect, compare, and challenge.' },
+    { number: '02', title: 'Freshness needs context', body: 'Newer is not always better. Nova balances recency with authority, relevance, and source quality.' },
+    { number: '03', title: 'Confidence should be visible', body: 'A system earns trust by showing uncertainty—not by hiding it behind fluent language.' },
+  ],
+  signals: ['Cited answers', 'Live retrieval', 'Trust ranking', 'Research mode', 'Source transparency', 'Human verification'],
 } as const;

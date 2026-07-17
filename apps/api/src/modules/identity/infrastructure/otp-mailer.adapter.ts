@@ -1,0 +1,92 @@
+import { Injectable, Logger } from '@nestjs/common';
+import nodemailer from 'nodemailer';
+import { AppConfigService } from '../../../bootstrap/app-config.service';
+
+@Injectable()
+export class OtpMailerAdapter {
+  private readonly logger = new Logger(OtpMailerAdapter.name);
+
+  constructor(private readonly config: AppConfigService) {}
+
+  get isConfigured(): boolean {
+    return Boolean(this.config.resendApiKey) || this.config.smtpConfigured;
+  }
+
+  async sendLoginCode(email: string, code: string): Promise<void> {
+    const subject = 'Your Nexiora login code';
+    const text = [
+      `Your Nexiora verification code is ${code}.`,
+      '',
+      'This code expires in 10 minutes.',
+      'If you did not request this, you can ignore this email.',
+    ].join('\n');
+    const html = `
+      <div style="font-family:Arial,sans-serif;line-height:1.5;color:#111">
+        <p>Your Nexiora verification code is:</p>
+        <p style="font-size:28px;font-weight:700;letter-spacing:6px">${code}</p>
+        <p>This code expires in 10 minutes.</p>
+        <p style="color:#666">If you did not request this, you can ignore this email.</p>
+      </div>
+    `;
+
+    if (this.config.resendApiKey) {
+      await this.sendWithResend(email, subject, text, html);
+      return;
+    }
+
+    if (this.config.smtpConfigured) {
+      await this.sendWithSmtp(email, subject, text, html);
+      return;
+    }
+
+    throw new Error('No email provider configured');
+  }
+
+  private async sendWithResend(
+    email: string,
+    subject: string,
+    text: string,
+    html: string,
+  ): Promise<void> {
+    const from = this.config.emailFrom || 'Nexiora AI <onboarding@resend.dev>';
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${this.config.resendApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ from, to: [email], subject, text, html }),
+    });
+
+    if (!response.ok) {
+      const detail = await response.text();
+      this.logger.error(`Resend failed: ${detail}`);
+      throw new Error('Unable to send verification email');
+    }
+  }
+
+  private async sendWithSmtp(
+    email: string,
+    subject: string,
+    text: string,
+    html: string,
+  ): Promise<void> {
+    const transporter = nodemailer.createTransport({
+      host: this.config.smtpHost,
+      port: this.config.smtpPort,
+      secure: this.config.smtpSecure,
+      auth: {
+        user: this.config.smtpUser,
+        pass: this.config.smtpPass,
+      },
+    });
+
+    await transporter.sendMail({
+      from: this.config.emailFrom || this.config.smtpUser,
+      to: email,
+      subject,
+      text,
+      html,
+    });
+  }
+}

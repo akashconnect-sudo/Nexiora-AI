@@ -12,9 +12,9 @@ export class GetSearchUseCase {
     @Inject(SEARCH_REPOSITORY_PORT) private readonly repo: SearchRepositoryPort,
   ) {}
 
-  async execute(id: string) {
+  async execute(id: string, userId: string) {
     const record = await this.repo.findById(id);
-    if (!record) {
+    if (!record || record.userId !== userId) {
       throw new DomainError(ERROR_CODES.NOT_FOUND, 'Search session not found', 404);
     }
     return record;

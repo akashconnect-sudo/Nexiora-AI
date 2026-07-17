@@ -7,6 +7,7 @@ export const metadata = buildMetadata({
     'Browse live technology and world headlines, then turn any story into a cited Nova Search briefing.',
   path: '/news',
   keywords: ['AI news search', 'live news synthesis', 'Nova Search news'],
+  noIndex: true,
 });
 
 export default function NewsPage() {

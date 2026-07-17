@@ -34,7 +34,7 @@ export function CreatorCoach() {
       <ul className="mt-8 space-y-4">
         {tips.map((tip) => (
           <li key={tip.id} className="creator-glass rounded-2xl border border-nx-border/70 p-5">
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
               <h2 className="font-display text-lg font-semibold text-nx-ink">{tip.title}</h2>
               <span className="text-[10px] font-semibold uppercase text-nx-accent">
                 {tip.kind === 'verified' ? 'From your channel' : tip.kind === 'signal' ? 'From the news' : 'Suggested'}

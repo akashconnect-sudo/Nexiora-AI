@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { FormEvent, useState } from 'react';
 import { Button } from '@nexiora/ui';
+import { getSessionUser } from '@/lib/session';
 
 /**
  * Functional landing omnibox — routes into the search experience.
@@ -16,7 +17,10 @@ export function HeroSearch() {
     event.preventDefault();
     const trimmed = query.trim();
     if (!trimmed) return;
-    router.push(`/search?q=${encodeURIComponent(trimmed)}`);
+    const destination = `/search?q=${encodeURIComponent(trimmed)}`;
+    router.push(
+      getSessionUser() ? destination : `/sign-in?next=${encodeURIComponent(destination)}`,
+    );
   }
 
   return (
@@ -34,10 +38,10 @@ export function HeroSearch() {
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Ask a question — answers come with sources"
-        className="h-12 flex-1 rounded-nx border border-nx-border bg-nx-elevated px-4 text-base text-nx-ink shadow-none outline-none ring-nx-accent transition focus:ring-2"
+        className="h-12 w-full flex-1 rounded-nx border border-nx-border bg-nx-elevated px-4 text-base text-nx-ink shadow-none outline-none ring-nx-accent transition focus:ring-2"
         autoComplete="off"
       />
-      <Button type="submit" className="h-12 px-6">
+      <Button type="submit" className="h-12 w-full px-6 sm:w-auto">
         Search
       </Button>
     </form>

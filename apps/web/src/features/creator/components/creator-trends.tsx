@@ -57,7 +57,7 @@ export function CreatorTrends() {
               </a>
               <p className="mt-1 text-xs leading-relaxed text-nx-muted">{item.why}</p>
             </div>
-            <div className="shrink-0 text-right">
+            <div className="shrink-0 text-left sm:text-right">
               <p className="text-2xl font-semibold text-nx-accent">{item.trendScore}</p>
               <p className="text-[10px] uppercase text-nx-muted">Trend score</p>
             </div>

@@ -19,11 +19,7 @@ export function resolveAnonymousEntitlements(): Pick<
 > {
   return {
     planId: 'free',
-    entitlements: {
-      ...DEFAULT_PLAN_ENTITLEMENTS.free,
-      // Anonymous visitors get a tighter daily cap than signed-in free users.
-      dailySearchLimit: 5,
-    },
+    entitlements: DEFAULT_PLAN_ENTITLEMENTS.free,
   };
 }
 

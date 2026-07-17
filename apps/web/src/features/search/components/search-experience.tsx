@@ -5,6 +5,7 @@ import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { Button } from '@nexiora/ui';
 import { NewsFeed } from '@/features/news/components/news-feed';
 import { AnswerContent } from '@/features/search/components/answer-content';
+import { UpgradeModal } from '@/components/upgrade-modal';
 import { authHeaders } from '@/lib/session';
 import { loadPrefs } from '@/lib/prefs';
 import { decodeHtmlEntities } from '@nexiora/shared';
@@ -104,6 +105,7 @@ export function SearchExperience({
   const [error, setError] = useState<string | null>(null);
   const [latencyHint, setLatencyHint] = useState<string | null>(null);
   const [citationTarget, setCitationTarget] = useState<'_blank' | '_self'>('_blank');
+  const [showUpgrade, setShowUpgrade] = useState(false);
 
   useEffect(() => {
     if (!initialMode) {
@@ -252,15 +254,34 @@ export function SearchExperience({
         });
 
         if (!response.ok) {
-          const problem = (await response.json().catch(() => null)) as { detail?: string } | null;
+          const problem = (await response.json().catch(() => null)) as {
+            code?: string;
+            detail?: string;
+            upgradeRequired?: boolean;
+            paymentRequired?: boolean;
+          } | null;
           setStatus('failed');
           setError(problem?.detail ?? 'Search could not be completed. Please try again.');
+          if (
+            problem?.code === 'QUOTA_EXCEEDED' ||
+            problem?.code === 'PAYMENT_REQUIRED' ||
+            problem?.upgradeRequired ||
+            problem?.paymentRequired
+          ) {
+            setShowUpgrade(true);
+          }
           return;
         }
 
-        const created = (await response.json()) as { id: string };
+        const created = (await response.json()) as {
+          id: string;
+          quota?: { limitType: 'lifetime' | 'daily'; remaining: number };
+        };
         setStatus('retrieving');
         await consumeStream(created.id);
+        if (created.quota?.limitType === 'lifetime' && created.quota.remaining === 0) {
+          setShowUpgrade(true);
+        }
       } catch {
         setStatus('failed');
         setError('Something went wrong while searching. Please try again.');
@@ -336,6 +357,7 @@ export function SearchExperience({
 
   return (
     <div className="py-2">
+      <UpgradeModal open={showUpgrade} onClose={() => setShowUpgrade(false)} />
       <div className="mb-3 flex flex-wrap gap-2" role="tablist" aria-label="Search mode">
         {MODES.map((item) => (
           <button
@@ -361,9 +383,9 @@ export function SearchExperience({
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={activeMode.placeholder}
-          className="h-12 flex-1 rounded-nx border border-nx-border bg-nx-elevated px-4 text-base outline-none ring-nx-accent focus:ring-2"
+          className="h-12 w-full flex-1 rounded-nx border border-nx-border bg-nx-elevated px-4 text-base outline-none ring-nx-accent focus:ring-2"
         />
-        <Button type="submit" className="h-12 px-6" disabled={isBusy}>
+        <Button type="submit" className="h-12 w-full px-6 sm:w-auto" disabled={isBusy}>
           {isBusy ? 'Searching…' : 'Search'}
         </Button>
       </form>

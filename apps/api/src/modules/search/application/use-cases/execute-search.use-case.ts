@@ -45,7 +45,11 @@ export class ExecuteSearchUseCase {
     @Inject(SEARCH_EVENT_BUS) private readonly events: SearchEventBus,
   ) {}
 
-  async execute(command: ExecuteSearchCommand): Promise<SearchRecord> {
+  async execute(
+    command: ExecuteSearchCommand,
+  ): Promise<
+    SearchRecord & { quota: { limitType: 'lifetime' | 'daily'; remaining: number } }
+  > {
     const parsed = CreateSearchRequestSchema.safeParse(command.body);
     if (!parsed.success) {
       throw new DomainError(
@@ -56,7 +60,7 @@ export class ExecuteSearchUseCase {
     }
 
     const ctx = await this.entitlements.resolveContext(command.userId, command.ip);
-    await this.entitlements.assertSearchAllowed(ctx);
+    const quota = await this.entitlements.assertSearchAllowed(ctx);
 
     const request = parsed.data;
     const id = randomUUID();
@@ -83,7 +87,7 @@ export class ExecuteSearchUseCase {
       this.logger.error(`Search pipeline failed for ${record.id}`, error);
     });
 
-    return record;
+    return { ...record, quota };
   }
 
   private async runPipeline(

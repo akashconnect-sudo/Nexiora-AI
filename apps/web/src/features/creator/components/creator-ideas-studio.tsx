@@ -105,9 +105,9 @@ export function CreatorIdeasStudio() {
           value={topic}
           onChange={(e) => setTopic(e.target.value)}
           placeholder="Topic — e.g. Amazon Connect"
-          className="h-12 flex-1 rounded-nx border border-nx-border bg-nx-elevated px-4 outline-none focus:ring-2 focus:ring-nx-accent"
+          className="h-12 w-full flex-1 rounded-nx border border-nx-border bg-nx-elevated px-4 outline-none focus:ring-2 focus:ring-nx-accent"
         />
-        <Button type="submit" disabled={busy} className="h-12 px-6">
+        <Button type="submit" disabled={busy} className="h-12 w-full px-6 sm:w-auto">
           {busy ? 'Creating…' : 'Create ideas'}
         </Button>
       </form>

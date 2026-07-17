@@ -47,7 +47,7 @@ function inlineFormat(text: string): ReactNode[] {
             rel="noreferrer"
             className="font-medium text-nx-accent underline-offset-2 hover:underline"
           >
-            {decodeHtmlEntities(link[1])}
+            {decodeHtmlEntities(link[1] ?? '')}
           </a>,
         );
       }

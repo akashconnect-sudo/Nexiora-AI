@@ -6,6 +6,7 @@ import { LocalAuthService } from './application/local-auth.service';
 import { ClerkIdentityAdapter } from './infrastructure/clerk-identity.adapter';
 import { CompositeIdentityAdapter } from './infrastructure/composite-identity.adapter';
 import { HybridUserDirectoryAdapter } from './infrastructure/hybrid-user-directory.adapter';
+import { OtpMailerAdapter } from './infrastructure/otp-mailer.adapter';
 import { AuthController } from './presentation/auth.controller';
 import { AuthGuard } from './presentation/auth.guard';
 import { OptionalAuthGuard } from './presentation/optional-auth.guard';
@@ -17,6 +18,7 @@ import { OptionalAuthGuard } from './presentation/optional-auth.guard';
     AuthGuard,
     OptionalAuthGuard,
     LocalAuthService,
+    OtpMailerAdapter,
     ClerkIdentityAdapter,
     HybridUserDirectoryAdapter,
     CompositeIdentityAdapter,

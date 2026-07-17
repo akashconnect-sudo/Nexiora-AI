@@ -8,9 +8,7 @@ export default function sitemap() {
     '/how-it-works',
     '/pricing',
     '/about',
-    '/news',
     '/research',
-    '/search',
     '/privacy',
     '/terms',
   ];
@@ -20,7 +18,7 @@ export default function sitemap() {
   return paths.map((path) => ({
     url: `${base}${path}`,
     lastModified,
-    changeFrequency: path === '' || path === '/news' ? ('daily' as const) : ('weekly' as const),
-    priority: path === '' ? 1 : path === '/search' || path === '/pricing' ? 0.9 : 0.7,
+    changeFrequency: path === '' ? ('daily' as const) : ('weekly' as const),
+    priority: path === '' ? 1 : path === '/pricing' ? 0.9 : 0.7,
   }));
 }

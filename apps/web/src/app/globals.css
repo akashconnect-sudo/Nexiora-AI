@@ -5,11 +5,37 @@
 html,
 body {
   min-height: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 body {
   background-color: var(--nx-bg);
   color: var(--nx-ink);
+}
+
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
+}
+
+input,
+textarea,
+select,
+button {
+  min-width: 0;
+}
+
+@media (max-width: 639px) {
+  button,
+  a,
+  input,
+  select,
+  textarea {
+    touch-action: manipulation;
+  }
 }
 
 /* Atmospheric paper grid — not a flat single-color wash */
@@ -39,4 +65,107 @@ body {
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   box-shadow: 0 1px 0 color-mix(in srgb, var(--nx-border) 80%, transparent);
+}
+
+/* About — restrained editorial motion */
+.about-hero-in {
+  animation: about-enter 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.about-delay-1 { animation-delay: 90ms; }
+.about-delay-2 { animation-delay: 180ms; }
+.about-delay-3 { animation-delay: 270ms; }
+
+.about-orbit {
+  position: absolute;
+  border: 1px solid color-mix(in srgb, var(--nx-accent) 24%, transparent);
+  border-radius: 9999px;
+  pointer-events: none;
+}
+
+.about-orbit-one {
+  width: min(62vw, 760px);
+  height: min(62vw, 760px);
+  right: -18%;
+  top: -20%;
+  animation: about-spin 34s linear infinite;
+}
+
+.about-orbit-two {
+  width: min(42vw, 520px);
+  height: min(42vw, 520px);
+  right: -3%;
+  top: 4%;
+  border-style: dashed;
+  animation: about-spin 24s linear infinite reverse;
+}
+
+.about-floating-card {
+  position: absolute;
+  min-width: 180px;
+  border: 1px solid var(--nx-border);
+  border-radius: 16px;
+  padding: 16px;
+  background: color-mix(in srgb, var(--nx-bg-elevated) 82%, transparent);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 20px 70px color-mix(in srgb, var(--nx-ink) 12%, transparent);
+  animation: about-float 6s ease-in-out infinite;
+}
+
+.about-floating-card:nth-of-type(4) {
+  animation-delay: -2.5s;
+}
+
+.about-score {
+  animation: about-score 1.2s 500ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  transform-origin: left;
+}
+
+.about-marquee {
+  animation: about-marquee 30s linear infinite;
+}
+
+.about-reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 600ms cubic-bezier(0.22, 1, 0.36, 1), transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.about-reveal[data-visible='true'] {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@keyframes about-enter {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes about-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes about-float {
+  0%, 100% { transform: translateY(0) rotate(-1deg); }
+  50% { transform: translateY(-14px) rotate(1deg); }
+}
+
+@keyframes about-score {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@keyframes about-marquee {
+  to { transform: translateX(-50%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .about-reveal {
+    opacity: 1;
+    transform: none;
+  }
+
+  .about-marquee {
+    transform: none;
+  }
 }

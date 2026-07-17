@@ -1,13 +1,13 @@
 import { createHmac, randomInt, randomUUID, timingSafeEqual } from 'node:crypto';
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { SignJWT, jwtVerify } from 'jose';
 import { ERROR_CODES } from '@nexiora/shared';
 import { DomainError } from '../../../common/errors/domain-error';
 import { AppConfigService } from '../../../bootstrap/app-config.service';
 import type { AppUser, UserDirectoryPort } from './ports/user-directory.port';
 import { USER_DIRECTORY_PORT } from './ports/user-directory.port';
-import { Inject } from '@nestjs/common';
 import type { AuthPrincipal } from './ports/identity-provider.port';
+import { OtpMailerAdapter } from '../infrastructure/otp-mailer.adapter';
 
 interface Challenge {
   email: string;
@@ -18,7 +18,7 @@ interface Challenge {
 
 /**
  * Email OTP local auth for environments without Clerk.
- * In development, the OTP is returned once so local login works without SMTP.
+ * When Resend/SMTP is configured, codes are emailed and never returned to the client.
  */
 @Injectable()
 export class LocalAuthService {
@@ -27,6 +27,7 @@ export class LocalAuthService {
 
   constructor(
     private readonly config: AppConfigService,
+    private readonly mailer: OtpMailerAdapter,
     @Inject(USER_DIRECTORY_PORT) private readonly users: UserDirectoryPort,
   ) {}
 
@@ -34,6 +35,7 @@ export class LocalAuthService {
     challengeId: string;
     expiresInSec: number;
     delivery: 'dev_inbox' | 'email';
+    message: string;
     devCode?: string;
   }> {
     const email = normalizeEmail(emailRaw);
@@ -52,14 +54,35 @@ export class LocalAuthService {
       attempts: 0,
     });
 
-    this.logger.log(`Local OTP issued for ${email} (challenge ${challengeId})`);
+    if (this.mailer.isConfigured) {
+      try {
+        await this.mailer.sendLoginCode(email, code);
+        this.logger.log(`OTP emailed to ${email} (challenge ${challengeId})`);
+        return {
+          challengeId,
+          expiresInSec,
+          delivery: 'email',
+          message: `We sent a 6-digit code to ${email}.`,
+        };
+      } catch (error) {
+        this.challenges.delete(challengeId);
+        this.logger.error(`OTP email failed for ${email}: ${(error as Error).message}`);
+        throw new DomainError(
+          ERROR_CODES.PROVIDER_UNAVAILABLE,
+          'Could not send the verification email. Please try again.',
+          502,
+        );
+      }
+    }
 
-    const isDev = this.config.nodeEnv !== 'production';
+    // Fallback only when no mail provider is configured (local bootstrap).
+    this.logger.warn(`No email provider configured — returning OTP in API response for ${email}`);
     return {
       challengeId,
       expiresInSec,
-      delivery: isDev ? 'dev_inbox' : 'email',
-      ...(isDev ? { devCode: code } : {}),
+      delivery: 'dev_inbox',
+      message: 'Email delivery is not configured yet. Use the on-screen code for now.',
+      devCode: code,
     };
   }
 

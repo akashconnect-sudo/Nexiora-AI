@@ -16,7 +16,9 @@ export interface PlanEntitlements {
 
 export const DEFAULT_PLAN_ENTITLEMENTS: Record<PlanId, PlanEntitlements> = {
   free: {
-    dailySearchLimit: 20,
+    // Free searches are a one-time allowance. EntitlementsService enforces
+    // this value as a lifetime cap rather than a daily window.
+    dailySearchLimit: 4,
     apiEnabled: false,
     creatorMode: false,
     researchMode: false,

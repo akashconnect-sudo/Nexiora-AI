@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { FormEvent, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -20,7 +20,7 @@ function safeNextPath(raw: string | null): string {
 
 /**
  * Email OTP login that works without Clerk.
- * In local/dev the API returns the code once so you can sign in without SMTP.
+ * Codes are emailed when Resend/SMTP is configured; otherwise a local fallback appears.
  */
 export function LocalAuthForm({ mode }: LocalAuthFormProps) {
   const router = useRouter();
@@ -29,7 +29,9 @@ export function LocalAuthForm({ mode }: LocalAuthFormProps) {
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [challengeId, setChallengeId] = useState('');
+  const [delivery, setDelivery] = useState<'dev_inbox' | 'email' | null>(null);
   const [devCode, setDevCode] = useState<string | null>(null);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -48,7 +50,9 @@ export function LocalAuthForm({ mode }: LocalAuthFormProps) {
         throw new Error(body.detail ?? body.title ?? 'Could not send code');
       }
       setChallengeId(body.challengeId);
+      setDelivery(body.delivery === 'email' ? 'email' : 'dev_inbox');
       setDevCode(typeof body.devCode === 'string' ? body.devCode : null);
+      setStatusMessage(typeof body.message === 'string' ? body.message : null);
       setStep('code');
     } catch (err) {
       setError((err as Error).message);
@@ -76,7 +80,8 @@ export function LocalAuthForm({ mode }: LocalAuthFormProps) {
         email: body.user.email,
         displayName: body.user.displayName,
       });
-      router.push(safeNextPath(searchParams.get('next')));
+      // Always land on billing after login so unpaid users activate Free ($2).
+      router.push('/settings/subscription');
       router.refresh();
     } catch (err) {
       setError((err as Error).message);
@@ -112,9 +117,18 @@ export function LocalAuthForm({ mode }: LocalAuthFormProps) {
       ) : (
         <form onSubmit={verifyCode} className="space-y-4">
           <p className="text-sm text-nx-muted">
-            Enter the 6-digit code sent for <span className="text-nx-ink">{email}</span>.
+            {statusMessage ?? (
+              <>
+                Enter the 6-digit code sent to <span className="text-nx-ink">{email}</span>.
+              </>
+            )}
           </p>
-          {devCode ? (
+          {delivery === 'email' ? (
+            <p className="rounded-nx border border-nx-border bg-nx-elevated px-3 py-2 text-sm text-nx-muted">
+              Check your inbox (and spam folder) for the Nexiora login code.
+            </p>
+          ) : null}
+          {delivery === 'dev_inbox' && devCode ? (
             <p className="rounded-nx border border-nx-border bg-nx-accent-soft/50 px-3 py-2 text-sm text-nx-ink">
               Local code (no email server configured): <strong>{devCode}</strong>
             </p>
@@ -145,6 +159,8 @@ export function LocalAuthForm({ mode }: LocalAuthFormProps) {
               setStep('email');
               setCode('');
               setDevCode(null);
+              setDelivery(null);
+              setStatusMessage(null);
               setError(null);
             }}
           >

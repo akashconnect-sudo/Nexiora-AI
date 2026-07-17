@@ -1,8 +1,11 @@
-import { Controller, Get, Query } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { AuthGuard } from '../../identity/presentation/auth.guard';
 import { NewsService } from '../application/news.service';
 
 @ApiTags('news')
+@ApiBearerAuth()
+@UseGuards(AuthGuard)
 @Controller('news')
 export class NewsController {
   constructor(private readonly news: NewsService) {}

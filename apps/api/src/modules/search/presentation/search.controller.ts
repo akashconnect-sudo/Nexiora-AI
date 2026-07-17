@@ -13,10 +13,6 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Observable } from 'rxjs';
-import {
-  OptionalAuthGuard,
-  type OptionalAuthRequest,
-} from '../../identity/presentation/optional-auth.guard';
 import { AuthGuard, type AuthenticatedRequest } from '../../identity/presentation/auth.guard';
 import { ExecuteSearchUseCase } from '../application/use-cases/execute-search.use-case';
 import { GetSearchUseCase } from '../application/use-cases/get-search.use-case';
@@ -24,6 +20,8 @@ import { ListSearchHistoryUseCase } from '../application/use-cases/list-search-h
 import { SEARCH_EVENT_BUS, SearchEventBus } from '../application/search-event-bus';
 
 @ApiTags('search')
+@ApiBearerAuth()
+@UseGuards(AuthGuard)
 @Controller('search')
 export class SearchController {
   constructor(
@@ -34,10 +32,8 @@ export class SearchController {
   ) {}
 
   @Post()
-  @UseGuards(OptionalAuthGuard)
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a Nova Search session (async pipeline)' })
-  async create(@Req() req: OptionalAuthRequest, @Headers('user-agent') userAgent?: string) {
+  async create(@Req() req: AuthenticatedRequest, @Headers('user-agent') userAgent?: string) {
     const ip =
       (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ||
       req.socket.remoteAddress ||
@@ -45,7 +41,7 @@ export class SearchController {
 
     const record = await this.executeSearch.execute({
       body: req.body,
-      userId: req.userId ?? null,
+      userId: req.userId!,
       ip,
       userAgent: userAgent ?? null,
       client: 'web',
@@ -57,12 +53,11 @@ export class SearchController {
       streamUrl: `/v1/search/${record.id}/stream`,
       query: record.query,
       createdAt: record.createdAt,
+      quota: record.quota,
     };
   }
 
   @Get()
-  @UseGuards(AuthGuard)
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Authenticated search history' })
   async history(
     @Req() req: AuthenticatedRequest,
@@ -74,7 +69,8 @@ export class SearchController {
 
   @Sse(':id/stream')
   @ApiOperation({ summary: 'SSE stream for search tokens and status' })
-  stream(@Param('id') id: string): Observable<MessageEvent> {
+  stream(@Param('id') id: string, @Req() req: AuthenticatedRequest): Observable<MessageEvent> {
+    const userId = req.userId!;
     return new Observable<MessageEvent>((subscriber) => {
       const unsubscribe = this.events.subscribe(id, (event) => {
         subscriber.next({ data: event } as MessageEvent);
@@ -84,7 +80,7 @@ export class SearchController {
       });
 
       void this.getSearch
-        .execute(id)
+        .execute(id, userId)
         .then((record) => {
           subscriber.next({
             data: { type: 'search.status', status: record.status },
@@ -132,7 +128,7 @@ export class SearchController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Get search session + answer' })
-  async getOne(@Param('id') id: string) {
-    return this.getSearch.execute(id);
+  async getOne(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
+    return this.getSearch.execute(id, req.userId!);
   }
 }

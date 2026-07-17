@@ -11,6 +11,7 @@ export const metadata = buildMetadata({
     'Run a Nova Search query with streaming answers, confidence scores, and a citation rail ranked by trust and freshness.',
   path: '/search',
   keywords: ['Nova Search', 'AI search tool', 'cited answers', 'verify sources online'],
+  noIndex: true,
 });
 
 export default async function SearchPage({ searchParams }: SearchPageProps) {

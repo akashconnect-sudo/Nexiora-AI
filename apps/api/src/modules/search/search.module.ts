@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { IdentityModule } from '../identity/identity.module';
 import { EntitlementsModule } from '../entitlements/entitlements.module';
-import { OptionalAuthGuard } from '../identity/presentation/optional-auth.guard';
 import { RETRIEVAL_ADAPTERS } from './application/ports/retrieval-adapter.port';
 import { GENERATION_PORT } from './application/ports/generation.port';
 import { SEARCH_REPOSITORY_PORT } from './application/ports/search-repository.port';
@@ -21,7 +20,6 @@ import { SearchController } from './presentation/search.controller';
   imports: [IdentityModule, EntitlementsModule],
   controllers: [SearchController],
   providers: [
-    OptionalAuthGuard,
     ExecuteSearchUseCase,
     GetSearchUseCase,
     ListSearchHistoryUseCase,

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@nexiora/ui';
 import { cleanDisplayText, decodeHtmlEntities } from '@nexiora/shared';
+import { authHeaders } from '@/lib/session';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
 
@@ -74,7 +75,10 @@ export function NewsFeed({
     try {
       const params = new URLSearchParams({ limit: String(limit) });
       if (category !== 'all') params.set('category', category);
-      const res = await fetch(`${API_URL}/v1/news?${params}`, { cache: 'no-store' });
+      const res = await fetch(`${API_URL}/v1/news?${params}`, {
+        cache: 'no-store',
+        headers: authHeaders(),
+      });
       if (!res.ok) throw new Error('Headlines are temporarily unavailable.');
       const body = (await res.json()) as { items: NewsItem[] };
       setItems(body.items ?? []);

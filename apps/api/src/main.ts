@@ -25,7 +25,7 @@ function loadEnvFiles(): void {
 loadEnvFiles();
 
 async function bootstrap(): Promise<void> {
-  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  const app = await NestFactory.create(AppModule, { bufferLogs: true, rawBody: true });
   const logger = app.get(Logger);
   app.useLogger(logger);
   app.useGlobalFilters(new ProblemDetailsFilter());
@@ -51,8 +51,19 @@ async function bootstrap(): Promise<void> {
 
   const document = SwaggerModule.createDocument(app, swagger);
   SwaggerModule.setup('docs', app, document);
-  app.getHttpAdapter().get('/openapi.json', (_req, res) => {
+  const http = app.getHttpAdapter();
+  http.get('/openapi.json', (_req: unknown, res: { json: (body: unknown) => void }) => {
     res.json(document);
+  });
+  http.get('/', (_req: unknown, res: { json: (body: unknown) => void }) => {
+    res.json({
+      name: 'Nexiora AI API',
+      status: 'ok',
+      health: '/health',
+      docs: '/docs',
+      openapi: '/openapi.json',
+      web: 'http://localhost:3000',
+    });
   });
 
   await app.listen(config.apiPort, config.apiHost);

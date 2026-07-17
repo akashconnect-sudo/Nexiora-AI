@@ -59,40 +59,42 @@ export function SiteHeader() {
           >
             Menu
           </button>
-          <Button
-            variant="ghost"
-            aria-label="Toggle color theme"
-            disabled={!mounted}
-            onClick={() => setTheme(isDark ? 'light' : 'dark')}
-          >
-            {!mounted ? 'Theme' : isDark ? 'Light' : 'Dark'}
-          </Button>
-          {user ? (
-            <>
-              <Link href="/dashboard" className="hidden sm:inline">
-                <Button>Open app</Button>
-              </Link>
-              <Button
-                variant="secondary"
-                onClick={() => {
-                  clearSession();
-                  setUser(null);
-                  window.location.href = '/';
-                }}
-              >
-                Log out
-              </Button>
-            </>
-          ) : (
-            <>
-              <Link href="/sign-in" className="hidden sm:inline">
-                <Button variant="secondary">Log in</Button>
-              </Link>
-              <Link href="/sign-up">
-                <Button>Get started</Button>
-              </Link>
-            </>
-          )}
+          <div className="hidden items-center gap-2 md:flex">
+            <Button
+              variant="ghost"
+              aria-label="Toggle color theme"
+              disabled={!mounted}
+              onClick={() => setTheme(isDark ? 'light' : 'dark')}
+            >
+              {!mounted ? 'Theme' : isDark ? 'Light' : 'Dark'}
+            </Button>
+            {user ? (
+              <>
+                <Link href="/dashboard">
+                  <Button>Open app</Button>
+                </Link>
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    clearSession();
+                    setUser(null);
+                    window.location.href = '/';
+                  }}
+                >
+                  Log out
+                </Button>
+              </>
+            ) : (
+              <>
+                <Link href="/sign-in">
+                  <Button variant="secondary">Log in</Button>
+                </Link>
+                <Link href="/sign-up">
+                  <Button>Get started</Button>
+                </Link>
+              </>
+            )}
+          </div>
         </div>
       </div>
       {mobileOpen ? (
@@ -121,6 +123,37 @@ export function SiteHeader() {
               </li>
             ) : null}
           </ul>
+          <div className="mt-3 flex flex-wrap gap-2 border-t border-nx-border pt-3">
+            <Button
+              variant="ghost"
+              aria-label="Toggle color theme"
+              disabled={!mounted}
+              onClick={() => setTheme(isDark ? 'light' : 'dark')}
+            >
+              {!mounted ? 'Theme' : isDark ? 'Light mode' : 'Dark mode'}
+            </Button>
+            {user ? (
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  clearSession();
+                  setUser(null);
+                  window.location.href = '/';
+                }}
+              >
+                Log out
+              </Button>
+            ) : (
+              <>
+                <Link href="/sign-in">
+                  <Button variant="secondary">Log in</Button>
+                </Link>
+                <Link href="/sign-up">
+                  <Button>Get started</Button>
+                </Link>
+              </>
+            )}
+          </div>
         </nav>
       ) : null}
     </header>

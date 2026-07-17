@@ -60,7 +60,8 @@ async function streamText(
   onChunk?: (chunk: GenerationChunk) => void | Promise<void>,
 ): Promise<void> {
   if (!onChunk) return;
-  const parts = text.match(/.{1,48}/g) ?? [text];
+  // Larger chunks keep streaming responsive without hundreds of micro-awaits.
+  const parts = text.match(/.{1,240}/gs) ?? [text];
   for (const part of parts) {
     await onChunk({ field, text: part });
   }

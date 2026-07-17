@@ -120,7 +120,7 @@ export function CreatorDashboard() {
               key={item.id}
               className="creator-glass rounded-2xl border border-nx-border/70 p-5 transition hover:border-nx-accent/40"
             >
-              <div className="flex items-start justify-between gap-3">
+              <div className="flex flex-col items-start gap-3 sm:flex-row sm:justify-between">
                 <h3 className="font-display text-lg font-semibold text-nx-ink">{item.topic}</h3>
                 <KindBadge kind={item.kind} />
               </div>
@@ -168,7 +168,7 @@ export function CreatorDashboard() {
           <ul className="mt-4 space-y-3">
             {data.coach.map((tip) => (
               <li key={tip.id} className="rounded-xl border border-nx-border/60 bg-nx-elevated/50 px-4 py-3">
-                <div className="flex items-center justify-between gap-2">
+                <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <p className="text-sm font-semibold text-nx-ink">{tip.title}</p>
                   <KindBadge kind={tip.kind} />
                 </div>

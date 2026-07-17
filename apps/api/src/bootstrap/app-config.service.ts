@@ -59,7 +59,16 @@ export class AppConfigService {
   }
 
   get openaiApiKey(): string {
-    return this.config.get('OPENAI_API_KEY', { infer: true });
+    const key = this.config.get('OPENAI_API_KEY', { infer: true })?.trim() ?? '';
+    if (
+      !key ||
+      /^(your-|sk-xxx|changeme|placeholder|replace)/i.test(key) ||
+      key === 'sk-' ||
+      key.length < 20
+    ) {
+      return '';
+    }
+    return key;
   }
 
   get openaiModel(): string {
@@ -68,6 +77,14 @@ export class AppConfigService {
 
   get stripeSecretKey(): string {
     return this.config.get('STRIPE_SECRET_KEY', { infer: true });
+  }
+
+  get stripeWebhookSecret(): string {
+    return this.config.get('STRIPE_WEBHOOK_SECRET', { infer: true });
+  }
+
+  get stripePriceFree(): string {
+    return this.config.get('STRIPE_PRICE_FREE', { infer: true });
   }
 
   get stripePricePro(): string {
@@ -84,5 +101,37 @@ export class AppConfigService {
 
   get authJwtSecret(): string {
     return this.config.get('AUTH_JWT_SECRET', { infer: true }) || this.ipHashSecret;
+  }
+
+  get resendApiKey(): string {
+    return this.config.get('RESEND_API_KEY', { infer: true })?.trim() ?? '';
+  }
+
+  get emailFrom(): string {
+    return this.config.get('EMAIL_FROM', { infer: true })?.trim() ?? '';
+  }
+
+  get smtpHost(): string {
+    return this.config.get('SMTP_HOST', { infer: true })?.trim() ?? '';
+  }
+
+  get smtpPort(): number {
+    return this.config.get('SMTP_PORT', { infer: true });
+  }
+
+  get smtpSecure(): boolean {
+    return this.config.get('SMTP_SECURE', { infer: true });
+  }
+
+  get smtpUser(): string {
+    return this.config.get('SMTP_USER', { infer: true })?.trim() ?? '';
+  }
+
+  get smtpPass(): string {
+    return this.config.get('SMTP_PASS', { infer: true })?.trim() ?? '';
+  }
+
+  get smtpConfigured(): boolean {
+    return Boolean(this.smtpHost && this.smtpUser && this.smtpPass);
   }
 }

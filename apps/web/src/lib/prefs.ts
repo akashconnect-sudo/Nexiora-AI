@@ -3,11 +3,19 @@ const PREFS_KEY = 'nexiora_prefs';
 export type UserPrefs = {
   defaultMode: 'universal' | 'research' | 'news';
   openCitationsInNewTab: boolean;
+  productUpdates: boolean;
+  quotaAlerts: boolean;
+  marketingEmails: boolean;
+  safeSearch: 'strict' | 'moderate' | 'off';
 };
 
 export const DEFAULT_PREFS: UserPrefs = {
   defaultMode: 'universal',
   openCitationsInNewTab: true,
+  productUpdates: true,
+  quotaAlerts: true,
+  marketingEmails: false,
+  safeSearch: 'moderate',
 };
 
 export function loadPrefs(): UserPrefs {

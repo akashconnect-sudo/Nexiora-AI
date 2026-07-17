@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
+import { cleanDisplayText } from '@nexiora/shared';
 import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
 
 export interface NewsListItem {
@@ -101,9 +102,13 @@ export class NewsService {
       .sort((a, b) => +new Date(b.publishedAt) - +new Date(a.publishedAt));
 
     if (next.length > 0) {
-      this.memory = next;
+      this.memory = next.map((item) => ({
+        ...item,
+        title: cleanDisplayText(item.title),
+        summary: item.summary ? cleanDisplayText(item.summary) : null,
+      }));
       this.memoryFetchedAt = Date.now();
-      this.logger.log(`News cache refreshed with ${next.length} items`);
+      this.logger.log(`News cache refreshed with ${this.memory.length} items`);
     }
   }
 

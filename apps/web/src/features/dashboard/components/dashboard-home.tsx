@@ -122,9 +122,9 @@ export function DashboardHome() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Ask Nova Search — e.g. what changed in AI regulation this week?"
-          className="h-11 flex-1 rounded-nx border-0 bg-transparent px-3 text-base outline-none ring-0 placeholder:text-nx-muted"
+          className="h-11 w-full flex-1 rounded-nx border-0 bg-transparent px-3 text-base outline-none ring-0 placeholder:text-nx-muted"
         />
-        <Button type="submit" className="h-11 px-6">
+        <Button type="submit" className="h-11 w-full px-6 sm:w-auto">
           Search
         </Button>
       </form>

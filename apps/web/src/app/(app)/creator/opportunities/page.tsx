@@ -3,6 +3,7 @@ import { buildMetadata } from '@/lib/seo';
 
 export const metadata = buildMetadata({
   title: 'Opportunities — Creator Intelligence',
+  description: 'Ranked content opportunities with scores and reasons to film next.',
   path: '/creator/opportunities',
   noIndex: true,
 });

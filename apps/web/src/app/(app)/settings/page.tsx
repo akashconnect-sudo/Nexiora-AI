@@ -1,4 +1,5 @@
-import { SettingsPanel } from '@/features/settings/components/settings-panel';
+import { Suspense } from 'react';
+import { SettingsExperience } from '@/features/settings/components/settings-experience';
 import { buildMetadata } from '@/lib/seo';
 
 export const metadata = buildMetadata({
@@ -9,5 +10,9 @@ export const metadata = buildMetadata({
 });
 
 export default function SettingsPage() {
-  return <SettingsPanel />;
+  return (
+    <Suspense fallback={<div className="p-8 text-sm text-nx-muted">Loading settings…</div>}>
+      <SettingsExperience />
+    </Suspense>
+  );
 }

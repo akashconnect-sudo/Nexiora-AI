@@ -1,4 +1,4 @@
-import Link from 'next/link';
+﻿import Link from 'next/link';
 import { Button } from '@nexiora/ui';
 import { pricingCopy } from '@/content/site';
 import { buildMetadata } from '@/lib/seo';
@@ -38,9 +38,9 @@ export default function PricingPage() {
               ))}
             </ul>
             <div className="mt-8">
-              <Link href={plan.id === 'free' ? '/search' : '/sign-up'}>
+              <Link href={plan.id === 'free' ? '/settings/subscription' : '/settings/subscription'}>
                 <Button variant={plan.id === 'pro' ? 'primary' : 'secondary'} className="w-full">
-                  {plan.id === 'free' ? 'Try Nova Search' : 'Get started'}
+                  {plan.id === 'free' ? 'Activate Free · $2' : `Choose ${plan.name}`}
                 </Button>
               </Link>
             </div>

@@ -6,8 +6,9 @@ import { useEffect, useState } from 'react';
 import { useTheme } from 'next-themes';
 import { Button } from '@nexiora/ui';
 import { siteConfig } from '@/content/site';
-import { clearSession, getSessionUser, type SessionUser } from '@/lib/session';
+import { clearSession, getSessionUser, authHeaders, type SessionUser } from '@/lib/session';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
 const NAV = [
   { href: '/dashboard', label: 'Home', icon: 'home' },
   { href: '/creator', label: 'Creator', icon: 'creator' },
@@ -69,6 +70,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [user, setUser] = useState<SessionUser | null>(null);
+  const [authReady, setAuthReady] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
@@ -76,7 +78,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    const sync = () => setUser(getSessionUser());
+    const sync = () => {
+      const session = getSessionUser();
+      setUser(session);
+      setAuthReady(true);
+      if (!session) {
+        router.replace(`/sign-in?next=${encodeURIComponent(pathname)}`);
+      }
+    };
     sync();
     window.addEventListener('nexiora-auth-changed', sync);
     window.addEventListener('storage', sync);
@@ -84,26 +93,38 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       window.removeEventListener('nexiora-auth-changed', sync);
       window.removeEventListener('storage', sync);
     };
-  }, []);
+  }, [pathname, router]);
+
+  useEffect(() => {
+    if (!user) return;
+    if (pathname.startsWith('/settings')) return;
+
+    let cancelled = false;
+    void (async () => {
+      try {
+        const response = await fetch(`${API_URL}/v1/billing/subscription`, {
+          headers: authHeaders(),
+        });
+        if (!response.ok || cancelled) return;
+        const body = (await response.json()) as { accessGranted?: boolean };
+        if (!body.accessGranted && !cancelled) {
+          router.replace('/settings/subscription');
+        }
+      } catch {
+        // Keep the shell usable if billing is temporarily unreachable.
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user, pathname, router]);
 
   useEffect(() => {
     setMobileOpen(false);
   }, [pathname]);
 
   const isDark = mounted && resolvedTheme === 'dark';
-  const requiresAuth =
-    pathname.startsWith('/dashboard') ||
-    pathname.startsWith('/settings') ||
-    pathname.startsWith('/library') ||
-    pathname.startsWith('/creator');
-
-  useEffect(() => {
-    if (!mounted) return;
-    if (requiresAuth && !getSessionUser()) {
-      router.replace(`/sign-in?next=${encodeURIComponent(pathname)}`);
-    }
-  }, [mounted, requiresAuth, pathname, router]);
-
   function logout() {
     clearSession();
     setUser(null);
@@ -133,10 +154,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     </nav>
   );
 
+  if (!authReady || !user) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-nx-bg px-4">
+        <p className="text-sm text-nx-muted">Checking your session…</p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen bg-nx-bg">
       {/* Desktop sidebar */}
-      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-nx-border bg-nx-elevated/80 md:flex">
+      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-nx-border bg-nx-elevated/80 lg:flex">
         <div className="flex h-14 items-center gap-2 border-b border-nx-border px-4">
           <Link href="/dashboard" className="font-display text-base font-semibold tracking-tight text-nx-ink">
             {siteConfig.name}
@@ -185,13 +214,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {mobileOpen ? (
         <button
           type="button"
-          className="fixed inset-0 z-40 bg-black/40 md:hidden"
+          className="fixed inset-0 z-40 bg-black/40 lg:hidden"
           aria-label="Close menu"
           onClick={() => setMobileOpen(false)}
         />
       ) : null}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-nx-border bg-nx-elevated transition-transform md:hidden ${
+        className={`fixed inset-y-0 left-0 z-50 flex w-[min(18rem,85vw)] flex-col border-r border-nx-border bg-nx-elevated transition-transform lg:hidden ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -201,15 +230,31 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             Close
           </button>
         </div>
-        <div className="py-4">{nav}</div>
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto py-4">{nav}</div>
+        <div className="border-t border-nx-border p-4">
+          <p className="truncate text-sm font-medium text-nx-ink">
+            {user.displayName || user.email.split('@')[0]}
+          </p>
+          <p className="mt-0.5 truncate text-xs text-nx-muted">{user.email}</p>
+          <div className="mt-3 flex gap-2">
+            <Link href="/settings" className="flex-1">
+              <Button variant="secondary" className="w-full">
+                Account
+              </Button>
+            </Link>
+            <Button variant="ghost" onClick={logout}>
+              Log out
+            </Button>
+          </div>
+        </div>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-3 border-b border-nx-border bg-nx-bg/90 px-4 backdrop-blur-md">
-          <div className="flex items-center gap-3">
+        <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-2 border-b border-nx-border bg-nx-bg/90 px-3 backdrop-blur-md sm:gap-3 sm:px-4">
+          <div className="flex min-w-0 items-center gap-2 sm:gap-3">
             <button
               type="button"
-              className="rounded-nx border border-nx-border px-2.5 py-1.5 text-sm text-nx-muted md:hidden"
+              className="shrink-0 rounded-nx border border-nx-border px-2.5 py-1.5 text-sm text-nx-muted lg:hidden"
               onClick={() => setMobileOpen(true)}
               aria-label="Open menu"
             >
