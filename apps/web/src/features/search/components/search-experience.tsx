@@ -25,7 +25,8 @@ export type Citation = {
   publishedAt?: string;
 };
 
-type SearchStatus = 'idle' | 'starting' | 'retrieving' | 'generating' | 'completed' | 'partial' | 'failed';
+type SearchStatus =
+  'idle' | 'starting' | 'retrieving' | 'generating' | 'completed' | 'partial' | 'failed';
 
 type StreamEvent =
   | { type: 'search.status'; status: string }
@@ -89,10 +90,7 @@ function sourceLabel(type: string): string {
   return map[type] ?? 'Source';
 }
 
-export function SearchExperience({
-  initialQuery = '',
-  initialMode,
-}: SearchExperienceProps) {
+export function SearchExperience({ initialQuery = '', initialMode }: SearchExperienceProps) {
   const [query, setQuery] = useState(initialQuery);
   const [mode, setMode] = useState<ModeId>((initialMode as ModeId) || 'universal');
   const [status, setStatus] = useState<SearchStatus>('idle');
@@ -350,10 +348,18 @@ export function SearchExperience({
 
   const starters =
     mode === 'research'
-      ? ['Transformer architecture survey', 'Climate science latest findings', 'CRISPR gene editing overview']
+      ? [
+          'Transformer architecture survey',
+          'Climate science latest findings',
+          'CRISPR gene editing overview',
+        ]
       : mode === 'news'
         ? ['AI regulation this week', 'Global markets today', 'Cybersecurity incidents']
-        : ['What is Nova Search?', 'How do citations improve AI answers?', 'Best practices for source verification'];
+        : [
+            'What is Nova Search?',
+            'How do citations improve AI answers?',
+            'Best practices for source verification',
+          ];
 
   return (
     <div className="py-2">
@@ -425,7 +431,8 @@ export function SearchExperience({
                   {mode === 'research' ? 'Start a research search' : 'Ask a question'}
                 </h2>
                 <p className="mt-2 text-sm leading-relaxed text-nx-muted">
-                  Your answer will appear here in a clean readable layout, with sources on the right.
+                  Your answer will appear here in a clean readable layout, with sources on the
+                  right.
                 </p>
                 <div className="mt-4 flex flex-wrap gap-2">
                   {starters.map((item) => (
@@ -473,7 +480,9 @@ export function SearchExperience({
             {summary ? (
               <div className="rounded-2xl border border-nx-border/70 bg-nx-elevated/50 p-5 sm:p-6">
                 <h2 className="font-display text-lg font-semibold text-nx-ink">Summary</h2>
-                <p className="mt-3 text-[15px] leading-7 text-nx-ink">{decodeHtmlEntities(summary)}</p>
+                <p className="mt-3 text-[15px] leading-7 text-nx-ink">
+                  {decodeHtmlEntities(summary)}
+                </p>
               </div>
             ) : null}
 
@@ -549,7 +558,10 @@ export function SearchExperience({
                   </li>
                 ) : (
                   citations.map((c) => (
-                    <li key={`${c.ordinal}-${c.url}`} className="border-b border-nx-border/80 pb-4 last:border-0 last:pb-0">
+                    <li
+                      key={`${c.ordinal}-${c.url}`}
+                      className="border-b border-nx-border/80 pb-4 last:border-0 last:pb-0"
+                    >
                       <div className="flex items-start justify-between gap-2">
                         <a
                           href={c.url}

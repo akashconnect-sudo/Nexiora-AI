@@ -58,11 +58,7 @@ function cleanSummary(raw: string | null | undefined): string | null {
   return text.length > 220 ? `${text.slice(0, 217).trim()}…` : text;
 }
 
-export function NewsFeed({
-  limit = 20,
-  compact = false,
-  showCategoryTabs = true,
-}: NewsFeedProps) {
+export function NewsFeed({ limit = 20, compact = false, showCategoryTabs = true }: NewsFeedProps) {
   const [category, setCategory] = useState<string>('all');
   const [items, setItems] = useState<NewsItem[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -161,8 +157,8 @@ export function NewsFeed({
 
       {!loading && !error && items.length === 0 ? (
         <div className="rounded-nx border border-dashed border-nx-border bg-nx-elevated/60 p-6 text-sm leading-relaxed text-nx-muted">
-          No stories in this category yet. Try <span className="font-medium text-nx-ink">All</span> or
-          refresh in a moment.
+          No stories in this category yet. Try <span className="font-medium text-nx-ink">All</span>{' '}
+          or refresh in a moment.
         </div>
       ) : null}
 
@@ -186,7 +182,9 @@ export function NewsFeed({
                 }
               >
                 <p className="text-xs text-nx-muted">
-                  <span className="font-medium text-nx-ink/80">{formatCategory(item.category)}</span>
+                  <span className="font-medium text-nx-ink/80">
+                    {formatCategory(item.category)}
+                  </span>
                   <span className="mx-1.5 text-nx-border">·</span>
                   {item.source}
                   <span className="mx-1.5 text-nx-border">·</span>

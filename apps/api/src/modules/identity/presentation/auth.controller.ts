@@ -1,7 +1,10 @@
 import { Body, Controller, Get, Inject, Post, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AppConfigService } from '../../../bootstrap/app-config.service';
-import { USER_DIRECTORY_PORT, type UserDirectoryPort } from '../application/ports/user-directory.port';
+import {
+  USER_DIRECTORY_PORT,
+  type UserDirectoryPort,
+} from '../application/ports/user-directory.port';
 import { LocalAuthService } from '../application/local-auth.service';
 import { AuthGuard, type AuthenticatedRequest } from './auth.guard';
 

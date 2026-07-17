@@ -272,8 +272,11 @@ export function enrichSearch(query: string, niche: string | null, signals: Signa
     ],
     thumbnailConcepts: ['Curious face + bold keyword', 'Diagram + result number'],
     scriptOutline: ['Hook', 'Context', 'Steps', 'Proof', 'CTA'],
-    estimatedAudience: niche ? `${niche} learners + adjacent curiosity traffic` : 'General curiosity + niche learners',
-    estimatedCompetition: scores.competition > 60 ? 'High' : scores.competition > 35 ? 'Medium' : 'Low',
+    estimatedAudience: niche
+      ? `${niche} learners + adjacent curiosity traffic`
+      : 'General curiosity + niche learners',
+    estimatedCompetition:
+      scores.competition > 60 ? 'High' : scores.competition > 35 ? 'Medium' : 'Low',
     why: `Suggestions blend your search with related headlines and opportunity estimates.`,
   };
 }

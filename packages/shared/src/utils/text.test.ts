@@ -3,8 +3,8 @@ import { cleanDisplayText, decodeHtmlEntities } from './text';
 
 describe('decodeHtmlEntities', () => {
   it('decodes apostrophe entities used by Wikipedia', () => {
-    expect(decodeHtmlEntities("It&#039;s almost")).toBe("It's almost");
-    expect(decodeHtmlEntities("India&#39;s Best")).toBe("India's Best");
+    expect(decodeHtmlEntities('It&#039;s almost')).toBe("It's almost");
+    expect(decodeHtmlEntities('India&#39;s Best')).toBe("India's Best");
   });
 
   it('handles common named entities and double-encoding', () => {

@@ -76,8 +76,7 @@ export const footerColumns = [
 export const homeCopy = {
   brandEyebrow: 'Nexiora AI',
   h1: 'Nova Search',
-  lead:
-    'Ask a question. Get an answer with sources ranked by trust, freshness, and relevance—so you can check the claim before you act on it.',
+  lead: 'Ask a question. Get an answer with sources ranked by trust, freshness, and relevance—so you can check the claim before you act on it.',
   primaryCta: 'Start free search',
   secondaryCta: 'See pricing',
   sections: {
@@ -192,7 +191,12 @@ export const pricingCopy = {
       price: '$2',
       period: 'one-time',
       blurb: 'Activate Free access with a $2 payment, then use limited searches.',
-      points: ['$2 activation payment required', 'Limited Search', 'Universal mode', 'Citations and confidence'],
+      points: [
+        '$2 activation payment required',
+        'Limited Search',
+        'Universal mode',
+        'Citations and confidence',
+      ],
     },
     {
       id: 'pro',
@@ -200,7 +204,12 @@ export const pricingCopy = {
       price: '$20',
       period: 'per month',
       blurb: 'For people who search as part of the job.',
-      points: ['Higher daily limits', 'Research mode', 'History and bookmarks', 'API access (metered)'],
+      points: [
+        'Higher daily limits',
+        'Research mode',
+        'History and bookmarks',
+        'API access (metered)',
+      ],
       highlighted: true,
     },
     {
@@ -209,7 +218,12 @@ export const pricingCopy = {
       price: '$80',
       period: 'per month',
       blurb: 'Shared work when a team depends on the same sources.',
-      points: ['Team workspaces', 'Shared collections', 'Higher API ceiling', 'Priority support path'],
+      points: [
+        'Team workspaces',
+        'Shared collections',
+        'Higher API ceiling',
+        'Priority support path',
+      ],
     },
   ],
   footnote:
@@ -218,7 +232,8 @@ export const pricingCopy = {
 
 export const aboutCopy = {
   title: 'About Nexiora AI',
-  description: 'Nexiora AI builds Nova Search, an AI knowledge platform focused on cited, checkable answers.',
+  description:
+    'Nexiora AI builds Nova Search, an AI knowledge platform focused on cited, checkable answers.',
   eyebrow: 'Built for decisions that deserve evidence',
   lead: 'We are building a calmer, more accountable way to search: answers that move quickly without leaving their evidence behind.',
   body: [
@@ -227,9 +242,28 @@ export const aboutCopy = {
     'We build for people who ship decisions—researchers, analysts, editors, and operators—not for demo screenshots. Accuracy beats theatrics. When sources disagree, the UI should show that tension instead of smoothing it away.',
   ],
   principles: [
-    { number: '01', title: 'Evidence is the interface', body: 'Every useful claim should lead back to a source you can inspect, compare, and challenge.' },
-    { number: '02', title: 'Freshness needs context', body: 'Newer is not always better. Nova balances recency with authority, relevance, and source quality.' },
-    { number: '03', title: 'Confidence should be visible', body: 'A system earns trust by showing uncertainty—not by hiding it behind fluent language.' },
+    {
+      number: '01',
+      title: 'Evidence is the interface',
+      body: 'Every useful claim should lead back to a source you can inspect, compare, and challenge.',
+    },
+    {
+      number: '02',
+      title: 'Freshness needs context',
+      body: 'Newer is not always better. Nova balances recency with authority, relevance, and source quality.',
+    },
+    {
+      number: '03',
+      title: 'Confidence should be visible',
+      body: 'A system earns trust by showing uncertainty—not by hiding it behind fluent language.',
+    },
   ],
-  signals: ['Cited answers', 'Live retrieval', 'Trust ranking', 'Research mode', 'Source transparency', 'Human verification'],
+  signals: [
+    'Cited answers',
+    'Live retrieval',
+    'Trust ranking',
+    'Research mode',
+    'Source transparency',
+    'Human verification',
+  ],
 } as const;

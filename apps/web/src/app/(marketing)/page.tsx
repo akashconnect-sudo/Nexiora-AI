@@ -50,7 +50,9 @@ export default function HomePage() {
       <section className="border-t border-nx-border bg-nx-elevated/70 py-20">
         <div className="mx-auto max-w-6xl px-4">
           <h2 className="font-display text-3xl font-semibold text-nx-ink">{sections.problem.h2}</h2>
-          <p className="mt-4 max-w-3xl text-base leading-relaxed text-nx-muted">{sections.problem.body}</p>
+          <p className="mt-4 max-w-3xl text-base leading-relaxed text-nx-muted">
+            {sections.problem.body}
+          </p>
         </div>
       </section>
 
@@ -73,7 +75,9 @@ export default function HomePage() {
 
       <section className="border-t border-nx-border bg-nx-elevated/50 py-20">
         <div className="mx-auto max-w-6xl px-4">
-          <h2 className="font-display text-3xl font-semibold text-nx-ink">{sections.audiences.h2}</h2>
+          <h2 className="font-display text-3xl font-semibold text-nx-ink">
+            {sections.audiences.h2}
+          </h2>
           <ul className="mt-10 grid gap-8 md:grid-cols-3">
             {sections.audiences.items.map((item) => (
               <li key={item.title}>

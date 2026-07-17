@@ -13,9 +13,9 @@ Bounded context for universal AI search orchestration.
 
 ## Adapters
 
-| Adapter | Auth | Role |
-|---------|------|------|
-| Wikipedia | none | Encyclopedic / docs |
-| OpenAlex | none | Academic |
-| Hacker News | none | Tech discussion freshness |
-| OpenAI (optional) | `OPENAI_API_KEY` | Generative synthesis |
+| Adapter           | Auth             | Role                      |
+| ----------------- | ---------------- | ------------------------- |
+| Wikipedia         | none             | Encyclopedic / docs       |
+| OpenAlex          | none             | Academic                  |
+| Hacker News       | none             | Tech discussion freshness |
+| OpenAI (optional) | `OPENAI_API_KEY` | Generative synthesis      |

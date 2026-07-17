@@ -12,10 +12,7 @@ export class NewsController {
 
   @Get()
   @ApiOperation({ summary: 'List recent news items' })
-  list(
-    @Query('category') category?: string,
-    @Query('limit') limit?: string,
-  ) {
+  list(@Query('category') category?: string, @Query('limit') limit?: string) {
     return this.news.list({
       category,
       limit: Math.min(Number(limit ?? 20), 50),

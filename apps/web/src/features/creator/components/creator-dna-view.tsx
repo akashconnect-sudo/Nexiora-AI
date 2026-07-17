@@ -39,7 +39,10 @@ export function CreatorDnaView() {
       <h1 className="font-display text-3xl font-semibold text-nx-ink">Creator DNA</h1>
       <p className="mt-2 text-sm text-nx-muted">{data.disclaimer}</p>
       <p className="mt-2 text-xs text-nx-accent">
-        Source: {String(dna.metricsProvenance) === 'verified' ? 'Your channel' : 'Estimated from your profile'}
+        Source:{' '}
+        {String(dna.metricsProvenance) === 'verified'
+          ? 'Your channel'
+          : 'Estimated from your profile'}
       </p>
       <div className="mt-8 grid gap-4 sm:grid-cols-2">
         {Object.entries(dna).map(([key, value]) => (

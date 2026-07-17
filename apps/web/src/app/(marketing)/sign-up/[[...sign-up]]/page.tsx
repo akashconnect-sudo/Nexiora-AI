@@ -12,7 +12,9 @@ export const metadata = buildMetadata({
 export default function SignUpPage() {
   return (
     <div className="mx-auto max-w-md px-4 py-20">
-      <h1 className="font-display text-3xl font-semibold text-nx-ink">Create your Nexiora account</h1>
+      <h1 className="font-display text-3xl font-semibold text-nx-ink">
+        Create your Nexiora account
+      </h1>
       <p className="mt-3 text-sm leading-relaxed text-nx-muted">
         Use your email to get a one-time code. Free accounts include limited Nova Search with full
         citations.

@@ -24,7 +24,10 @@ export class CreatorService {
     private readonly news: NewsService,
   ) {}
 
-  async getOrCreateProfile(userId: string, emailHint?: string | null): Promise<CreatorProfileRecord> {
+  async getOrCreateProfile(
+    userId: string,
+    emailHint?: string | null,
+  ): Promise<CreatorProfileRecord> {
     const existing = await this.readProfile(userId);
     if (existing) return existing;
 
@@ -76,8 +79,7 @@ export class CreatorService {
     const next: CreatorProfileRecord = {
       ...current,
       permissions: { ...current.permissions, ...permissions },
-      onboardingCompletedAt:
-        current.onboardingCompletedAt ?? new Date().toISOString(),
+      onboardingCompletedAt: current.onboardingCompletedAt ?? new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
     await this.writeProfile(next);
@@ -89,10 +91,9 @@ export class CreatorService {
     const signals = await this.loadSignals();
     return {
       dna: buildDna(profile, signals),
-      disclaimer:
-        profile.permissions.youtube_channel
-          ? 'Channel-linked details update when you refresh your connected account.'
-          : 'Estimated profile for now. Connect YouTube to replace placeholders with your real channel stats.',
+      disclaimer: profile.permissions.youtube_channel
+        ? 'Channel-linked details update when you refresh your connected account.'
+        : 'Estimated profile for now. Connect YouTube to replace placeholders with your real channel stats.',
     };
   }
 
@@ -119,10 +120,10 @@ export class CreatorService {
         kind: 'signal' as const,
         why: `Live public headline from ${s.source}.`,
       })),
-      upcomingTrends: recommendations
-        .filter((r) => r.scores.growthSpeed >= 60)
+      upcomingTrends: recommendations.filter((r) => r.scores.growthSpeed >= 60).slice(0, 4),
+      highCpm: [...recommendations]
+        .sort((a, b) => b.scores.cpmScore - a.scores.cpmScore)
         .slice(0, 4),
-      highCpm: [...recommendations].sort((a, b) => b.scores.cpmScore - a.scores.cpmScore).slice(0, 4),
       lowCompetition: [...recommendations]
         .sort((a, b) => a.scores.competition - b.scores.competition)
         .slice(0, 4),
@@ -161,7 +162,8 @@ export class CreatorService {
           publishedAt: s.publishedAt,
         };
       }),
-      disclaimer: 'Trend board uses live public headlines. Google Trends and YouTube Trending unlock when those connections are enabled.',
+      disclaimer:
+        'Trend board uses live public headlines. Google Trends and YouTube Trending unlock when those connections are enabled.',
     };
   }
 
@@ -209,7 +211,9 @@ export class CreatorService {
       try {
         const client = this.prisma as unknown as {
           creatorProfile?: {
-            findUnique: (args: { where: { userId: string } }) => Promise<Record<string, unknown> | null>;
+            findUnique: (args: {
+              where: { userId: string };
+            }) => Promise<Record<string, unknown> | null>;
           };
         };
         const row = await client.creatorProfile?.findUnique({ where: { userId } });

@@ -100,9 +100,7 @@ export function LibraryHome() {
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-8">
       <p className="text-xs font-semibold uppercase tracking-[0.16em] text-nx-accent">Library</p>
       <h1 className="mt-1 font-display text-3xl font-semibold text-nx-ink">Your work</h1>
-      <p className="mt-2 text-sm text-nx-muted">
-        Recent Nova Searches and bookmarks in one place.
-      </p>
+      <p className="mt-2 text-sm text-nx-muted">Recent Nova Searches and bookmarks in one place.</p>
 
       <div className="mt-6 flex gap-2" role="tablist">
         {(

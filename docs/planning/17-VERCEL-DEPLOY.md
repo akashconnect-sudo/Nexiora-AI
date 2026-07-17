@@ -2,9 +2,9 @@
 
 ## What goes where
 
-| App | Host | Why |
-|-----|------|-----|
-| **Web** (`apps/web`) | **Vercel** | Next.js is first-class on Vercel |
+| App                  | Host                      | Why                                                                                        |
+| -------------------- | ------------------------- | ------------------------------------------------------------------------------------------ |
+| **Web** (`apps/web`) | **Vercel**                | Next.js is first-class on Vercel                                                           |
 | **API** (`apps/api`) | Railway / Render / Fly.io | NestJS needs a long-running Node server — not a standard Vercel static/serverless Next app |
 
 `nexiora-ai-api` on Vercel with NestJS + custom CNAME usually fails (e.g. **Delete CNAME**). Deploy **web** as a Next.js monorepo project instead.

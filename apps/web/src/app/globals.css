@@ -45,7 +45,10 @@ button {
     radial-gradient(ellipse 80% 50% at 50% -10%, var(--nx-accent-soft), transparent 55%),
     linear-gradient(var(--nx-border) 1px, transparent 1px),
     linear-gradient(90deg, var(--nx-border) 1px, transparent 1px);
-  background-size: auto, 48px 48px, 48px 48px;
+  background-size:
+    auto,
+    48px 48px,
+    48px 48px;
   background-position: center, center, center;
 }
 
@@ -72,9 +75,15 @@ button {
   animation: about-enter 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-.about-delay-1 { animation-delay: 90ms; }
-.about-delay-2 { animation-delay: 180ms; }
-.about-delay-3 { animation-delay: 270ms; }
+.about-delay-1 {
+  animation-delay: 90ms;
+}
+.about-delay-2 {
+  animation-delay: 180ms;
+}
+.about-delay-3 {
+  animation-delay: 270ms;
+}
 
 .about-orbit {
   position: absolute;
@@ -128,7 +137,9 @@ button {
 .about-reveal {
   opacity: 0;
   transform: translateY(18px);
-  transition: opacity 600ms cubic-bezier(0.22, 1, 0.36, 1), transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition:
+    opacity 600ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .about-reveal[data-visible='true'] {
@@ -137,26 +148,45 @@ button {
 }
 
 @keyframes about-enter {
-  from { opacity: 0; transform: translateY(16px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes about-spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes about-float {
-  0%, 100% { transform: translateY(0) rotate(-1deg); }
-  50% { transform: translateY(-14px) rotate(1deg); }
+  0%,
+  100% {
+    transform: translateY(0) rotate(-1deg);
+  }
+  50% {
+    transform: translateY(-14px) rotate(1deg);
+  }
 }
 
 @keyframes about-score {
-  from { transform: scaleX(0); }
-  to { transform: scaleX(1); }
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
 }
 
 @keyframes about-marquee {
-  to { transform: translateX(-50%); }
+  to {
+    transform: translateX(-50%);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -1,12 +1,7 @@
 import type { SearchFilters, SearchMode, SourceType } from '@nexiora/shared';
 
 export type SearchPipelineStatus =
-  | 'pending'
-  | 'retrieving'
-  | 'generating'
-  | 'completed'
-  | 'failed'
-  | 'partial';
+  'pending' | 'retrieving' | 'generating' | 'completed' | 'failed' | 'partial';
 
 export interface SearchCitation {
   readonly ordinal: number;

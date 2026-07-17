@@ -10,11 +10,11 @@
 
 ## Branding Decision (Requires Approval)
 
-| Layer | Name | Role |
-|-------|------|------|
-| Company / Platform | **Nexiora AI** | SaaS brand, billing, identity, workspaces |
-| Core Product | **Nova Search** | AI-powered knowledge search engine |
-| Legal entity (TBD) | Nexiora Inc. (placeholder) | Corporate |
+| Layer              | Name                       | Role                                      |
+| ------------------ | -------------------------- | ----------------------------------------- |
+| Company / Platform | **Nexiora AI**             | SaaS brand, billing, identity, workspaces |
+| Core Product       | **Nova Search**            | AI-powered knowledge search engine        |
+| Legal entity (TBD) | Nexiora Inc. (placeholder) | Corporate                                 |
 
 > If you prefer a single public name, approve either **Nexiora AI** or **Nova Search AI** as the sole brand. Default assumption below: dual naming as above.
 
@@ -22,20 +22,20 @@
 
 ## Document Set
 
-| # | Document | Path | Purpose |
-|---|----------|------|---------|
-| 1 | Software Requirements Specification (SRS) | [01-SRS.md](./01-SRS.md) | Functional & non-functional requirements |
-| 2 | Product Requirements Document (PRD) | [02-PRD.md](./02-PRD.md) | Product vision, personas, features, success metrics |
-| 3 | System Architecture | [03-SYSTEM-ARCHITECTURE.md](./03-SYSTEM-ARCHITECTURE.md) | Clean Architecture, DDD, services, data flow |
-| 4 | Database Schema | [04-DATABASE-SCHEMA.md](./04-DATABASE-SCHEMA.md) | PostgreSQL, Redis, OpenSearch, Qdrant models |
-| 5 | API Design | [05-API-DESIGN.md](./05-API-DESIGN.md) | REST, GraphQL, WebSocket, versioning |
-| 6 | Folder Structure | [06-FOLDER-STRUCTURE.md](./06-FOLDER-STRUCTURE.md) | Monorepo, feature-based layout |
-| 7 | UI/UX Plan | [07-UI-UX-PLAN.md](./07-UI-UX-PLAN.md) | Design system, flows, accessibility |
-| 8 | Development Roadmap | [08-DEVELOPMENT-ROADMAP.md](./08-DEVELOPMENT-ROADMAP.md) | Phased delivery, module order |
-| 9 | Security Plan | [09-SECURITY-PLAN.md](./09-SECURITY-PLAN.md) | AuthN/Z, OWASP, compliance |
-| 10 | DevOps Plan | [10-DEVOPS-PLAN.md](./10-DEVOPS-PLAN.md) | CI/CD, observability, environments |
-| 11 | Testing Strategy | [11-TESTING-STRATEGY.md](./11-TESTING-STRATEGY.md) | Unit, integration, E2E, AI eval |
-| 12 | Deployment Strategy | [12-DEPLOYMENT-STRATEGY.md](./12-DEPLOYMENT-STRATEGY.md) | K8s, multi-region, rollback |
+| #   | Document                                  | Path                                                     | Purpose                                             |
+| --- | ----------------------------------------- | -------------------------------------------------------- | --------------------------------------------------- |
+| 1   | Software Requirements Specification (SRS) | [01-SRS.md](./01-SRS.md)                                 | Functional & non-functional requirements            |
+| 2   | Product Requirements Document (PRD)       | [02-PRD.md](./02-PRD.md)                                 | Product vision, personas, features, success metrics |
+| 3   | System Architecture                       | [03-SYSTEM-ARCHITECTURE.md](./03-SYSTEM-ARCHITECTURE.md) | Clean Architecture, DDD, services, data flow        |
+| 4   | Database Schema                           | [04-DATABASE-SCHEMA.md](./04-DATABASE-SCHEMA.md)         | PostgreSQL, Redis, OpenSearch, Qdrant models        |
+| 5   | API Design                                | [05-API-DESIGN.md](./05-API-DESIGN.md)                   | REST, GraphQL, WebSocket, versioning                |
+| 6   | Folder Structure                          | [06-FOLDER-STRUCTURE.md](./06-FOLDER-STRUCTURE.md)       | Monorepo, feature-based layout                      |
+| 7   | UI/UX Plan                                | [07-UI-UX-PLAN.md](./07-UI-UX-PLAN.md)                   | Design system, flows, accessibility                 |
+| 8   | Development Roadmap                       | [08-DEVELOPMENT-ROADMAP.md](./08-DEVELOPMENT-ROADMAP.md) | Phased delivery, module order                       |
+| 9   | Security Plan                             | [09-SECURITY-PLAN.md](./09-SECURITY-PLAN.md)             | AuthN/Z, OWASP, compliance                          |
+| 10  | DevOps Plan                               | [10-DEVOPS-PLAN.md](./10-DEVOPS-PLAN.md)                 | CI/CD, observability, environments                  |
+| 11  | Testing Strategy                          | [11-TESTING-STRATEGY.md](./11-TESTING-STRATEGY.md)       | Unit, integration, E2E, AI eval                     |
+| 12  | Deployment Strategy                       | [12-DEPLOYMENT-STRATEGY.md](./12-DEPLOYMENT-STRATEGY.md) | K8s, multi-region, rollback                         |
 
 ---
 

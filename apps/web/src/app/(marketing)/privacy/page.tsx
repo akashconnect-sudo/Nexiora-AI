@@ -3,7 +3,8 @@ import { siteConfig } from '@/content/site';
 
 export const metadata = buildMetadata({
   title: 'Privacy Policy | Nexiora AI',
-  description: 'How Nexiora AI collects, uses, and retains data for Nova Search and related services.',
+  description:
+    'How Nexiora AI collects, uses, and retains data for Nova Search and related services.',
   path: '/privacy',
 });
 
@@ -37,7 +38,8 @@ export default function PrivacyPage() {
         </p>
         <h2 className="font-display text-xl font-semibold text-nx-ink">Contact</h2>
         <p>
-          Privacy questions: <a href={`mailto:${siteConfig.supportEmail}`}>{siteConfig.supportEmail}</a>
+          Privacy questions:{' '}
+          <a href={`mailto:${siteConfig.supportEmail}`}>{siteConfig.supportEmail}</a>
         </p>
       </div>
     </article>

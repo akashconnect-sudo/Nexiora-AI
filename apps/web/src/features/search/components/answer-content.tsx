@@ -76,7 +76,10 @@ export function AnswerContent({ markdown, className = '' }: AnswerContentProps) 
   const flushList = () => {
     if (!listItems.length) return;
     blocks.push(
-      <ul key={`ul-${key++}`} className="my-4 list-disc space-y-2.5 pl-5 text-[15px] leading-7 text-nx-ink">
+      <ul
+        key={`ul-${key++}`}
+        className="my-4 list-disc space-y-2.5 pl-5 text-[15px] leading-7 text-nx-ink"
+      >
         {listItems.map((item, index) => (
           <li key={`li-${index}`}>{inlineFormat(item)}</li>
         ))}
@@ -110,7 +113,10 @@ export function AnswerContent({ markdown, className = '' }: AnswerContentProps) 
     if (trimmed.startsWith('## ')) {
       flushList();
       blocks.push(
-        <h2 key={`h2-${key++}`} className="mb-3 mt-2 font-display text-xl font-semibold text-nx-ink">
+        <h2
+          key={`h2-${key++}`}
+          className="mb-3 mt-2 font-display text-xl font-semibold text-nx-ink"
+        >
           {decodeHtmlEntities(trimmed.slice(3))}
         </h2>,
       );
@@ -120,7 +126,10 @@ export function AnswerContent({ markdown, className = '' }: AnswerContentProps) 
     if (trimmed.startsWith('### ')) {
       flushList();
       blocks.push(
-        <h3 key={`h3-${key++}`} className="mb-2 mt-6 font-display text-lg font-semibold text-nx-ink">
+        <h3
+          key={`h3-${key++}`}
+          className="mb-2 mt-6 font-display text-lg font-semibold text-nx-ink"
+        >
           {decodeHtmlEntities(trimmed.slice(4))}
         </h3>,
       );

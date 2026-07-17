@@ -13,27 +13,27 @@ Help YouTube creators discover high-opportunity content ideas **before saturatio
 
 ## Phased delivery
 
-| Phase | Scope |
-|-------|--------|
+| Phase              | Scope                                                                                                                                                      |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **C0 (this ship)** | Profile + permissions, Creator DNA skeleton, dashboard API, opportunity scoring domain, public-signal recommendations, coach tips, ideas generator, web UI |
-| **C1** | YouTube OAuth + Analytics read (consented), real CTR/retention fields |
-| **C2** | Trend workers (GT, YT trending, Reddit, GH, Product Hunt), notification fan-out |
-| **C3** | Competitor graph, calendar, monetization/CPM models with cited sources |
+| **C1**             | YouTube OAuth + Analytics read (consented), real CTR/retention fields                                                                                      |
+| **C2**             | Trend workers (GT, YT trending, Reddit, GH, Product Hunt), notification fan-out                                                                            |
+| **C3**             | Competitor graph, calendar, monetization/CPM models with cited sources                                                                                     |
 
 ## API (v1)
 
-| Method | Path | Auth | Purpose |
-|--------|------|------|---------|
-| GET | `/v1/creator/profile` | Bearer | Profile + permissions |
-| PUT | `/v1/creator/profile` | Bearer | Upsert niche / display |
-| PATCH | `/v1/creator/permissions` | Bearer | Grant/revoke scopes |
-| GET | `/v1/creator/dna` | Bearer | Creator DNA snapshot |
-| GET | `/v1/creator/dashboard` | Bearer | Personalized home payload |
-| GET | `/v1/creator/opportunities` | Bearer | Ranked topics + scores |
-| GET | `/v1/creator/trends` | Bearer | Trend board |
-| POST | `/v1/creator/ideas` | Bearer | Titles, hooks, SEO pack |
-| POST | `/v1/creator/search/enrich` | Bearer | Search-side recommendations |
-| GET | `/v1/creator/coach` | Bearer | Growth coach tips |
+| Method | Path                        | Auth   | Purpose                     |
+| ------ | --------------------------- | ------ | --------------------------- |
+| GET    | `/v1/creator/profile`       | Bearer | Profile + permissions       |
+| PUT    | `/v1/creator/profile`       | Bearer | Upsert niche / display      |
+| PATCH  | `/v1/creator/permissions`   | Bearer | Grant/revoke scopes         |
+| GET    | `/v1/creator/dna`           | Bearer | Creator DNA snapshot        |
+| GET    | `/v1/creator/dashboard`     | Bearer | Personalized home payload   |
+| GET    | `/v1/creator/opportunities` | Bearer | Ranked topics + scores      |
+| GET    | `/v1/creator/trends`        | Bearer | Trend board                 |
+| POST   | `/v1/creator/ideas`         | Bearer | Titles, hooks, SEO pack     |
+| POST   | `/v1/creator/search/enrich` | Bearer | Search-side recommendations |
+| GET    | `/v1/creator/coach`         | Bearer | Growth coach tips           |
 
 ## Scoring (Content Opportunity)
 

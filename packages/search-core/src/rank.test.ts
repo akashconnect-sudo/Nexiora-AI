@@ -5,7 +5,9 @@ import { normalizeQuery } from './normalize-query';
 import { rankDocuments } from './rank-documents';
 import type { RetrievedDocument } from './types';
 
-function doc(partial: Partial<RetrievedDocument> & Pick<RetrievedDocument, 'id' | 'url'>): RetrievedDocument {
+function doc(
+  partial: Partial<RetrievedDocument> & Pick<RetrievedDocument, 'id' | 'url'>,
+): RetrievedDocument {
   return {
     title: partial.title ?? 'Title',
     canonicalUrl: partial.canonicalUrl ?? partial.url,
@@ -51,23 +53,26 @@ describe('dedupeDocuments', () => {
 
 describe('rankDocuments', () => {
   it('ranks official high-trust docs above weak ones', () => {
-    const ranked = rankDocuments([
-      doc({
-        id: 'weak',
-        url: 'https://blog.example/x',
-        trustScore: 20,
-        relevanceScore: 0.9,
-        isOfficial: false,
-      }),
-      doc({
-        id: 'official',
-        url: 'https://gov.example/x',
-        trustScore: 95,
-        relevanceScore: 0.7,
-        isOfficial: true,
-        publishedAt: new Date('2026-07-10T00:00:00Z'),
-      }),
-    ], { now: new Date('2026-07-11T00:00:00Z') });
+    const ranked = rankDocuments(
+      [
+        doc({
+          id: 'weak',
+          url: 'https://blog.example/x',
+          trustScore: 20,
+          relevanceScore: 0.9,
+          isOfficial: false,
+        }),
+        doc({
+          id: 'official',
+          url: 'https://gov.example/x',
+          trustScore: 95,
+          relevanceScore: 0.7,
+          isOfficial: true,
+          publishedAt: new Date('2026-07-10T00:00:00Z'),
+        }),
+      ],
+      { now: new Date('2026-07-11T00:00:00Z') },
+    );
 
     expect(ranked[0]?.id).toBe('official');
   });

@@ -26,9 +26,9 @@ export default function TermsPage() {
         </p>
         <h2 className="font-display text-xl font-semibold text-nx-ink">No professional advice</h2>
         <p>
-          Answers may be incomplete or incorrect. Nova Search is not a substitute for licensed legal,
-          medical, financial, or other professional advice. Always verify critical claims against
-          primary sources shown in citations.
+          Answers may be incomplete or incorrect. Nova Search is not a substitute for licensed
+          legal, medical, financial, or other professional advice. Always verify critical claims
+          against primary sources shown in citations.
         </p>
         <h2 className="font-display text-xl font-semibold text-nx-ink">Accounts and billing</h2>
         <p>

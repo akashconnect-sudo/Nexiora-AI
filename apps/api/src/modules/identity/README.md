@@ -9,9 +9,9 @@ Bounded context for authentication and local user projections.
 
 ## Ports
 
-| Port | Adapter |
-|------|---------|
-| `IdentityProviderPort` | `ClerkIdentityAdapter` |
-| `UserDirectoryPort` | `PrismaUserDirectoryAdapter` |
+| Port                   | Adapter                      |
+| ---------------------- | ---------------------------- |
+| `IdentityProviderPort` | `ClerkIdentityAdapter`       |
+| `UserDirectoryPort`    | `PrismaUserDirectoryAdapter` |
 
 Swap Clerk for Auth.js by implementing `IdentityProviderPort` only.

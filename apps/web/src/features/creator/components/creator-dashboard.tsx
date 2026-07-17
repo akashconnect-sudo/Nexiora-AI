@@ -12,7 +12,12 @@ type Rec = {
   topic: string;
   why: string;
   kind: string;
-  scores: { opportunityScore: number; confidenceScore: number; competition: number; cpmScore: number };
+  scores: {
+    opportunityScore: number;
+    confidenceScore: number;
+    competition: number;
+    cpmScore: number;
+  };
   bestUploadWindow?: string;
   disclaimer: string;
 };
@@ -110,8 +115,12 @@ export function CreatorDashboard() {
       <section className="mt-10">
         <div className="mb-4 flex items-end justify-between gap-3">
           <div>
-            <h2 className="font-display text-xl font-semibold text-nx-ink">Today’s best opportunities</h2>
-            <p className="mt-1 text-sm text-nx-muted">Each idea includes a short reason it was suggested.</p>
+            <h2 className="font-display text-xl font-semibold text-nx-ink">
+              Today’s best opportunities
+            </h2>
+            <p className="mt-1 text-sm text-nx-muted">
+              Each idea includes a short reason it was suggested.
+            </p>
           </div>
         </div>
         <div className="grid gap-4 md:grid-cols-2">
@@ -131,7 +140,9 @@ export function CreatorDashboard() {
                 <ScorePill label="Competition" value={item.scores.competition} />
               </div>
               {item.bestUploadWindow ? (
-                <p className="mt-3 text-xs text-nx-accent">Upload window: {item.bestUploadWindow}</p>
+                <p className="mt-3 text-xs text-nx-accent">
+                  Upload window: {item.bestUploadWindow}
+                </p>
               ) : null}
               <Link
                 href={`/creator/ideas?topic=${encodeURIComponent(item.topic)}`}
@@ -149,12 +160,20 @@ export function CreatorDashboard() {
           <h2 className="font-display text-lg font-semibold text-nx-ink">Breaking trends</h2>
           <ul className="mt-4 space-y-3">
             {data.breakingTrends.slice(0, 6).map((item) => (
-              <li key={item.url} className="rounded-xl border border-nx-border/60 bg-nx-elevated/50 px-4 py-3">
+              <li
+                key={item.url}
+                className="rounded-xl border border-nx-border/60 bg-nx-elevated/50 px-4 py-3"
+              >
                 <div className="flex items-center gap-2">
                   <KindBadge kind={item.kind} />
                   <span className="text-xs text-nx-muted">{item.source}</span>
                 </div>
-                <a href={item.url} target="_blank" rel="noreferrer" className="mt-1 block text-sm font-medium text-nx-ink hover:text-nx-accent">
+                <a
+                  href={item.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-1 block text-sm font-medium text-nx-ink hover:text-nx-accent"
+                >
                   {item.title}
                 </a>
                 <p className="mt-1 text-xs text-nx-muted">{item.why}</p>
@@ -167,7 +186,10 @@ export function CreatorDashboard() {
           <h2 className="font-display text-lg font-semibold text-nx-ink">AI coach</h2>
           <ul className="mt-4 space-y-3">
             {data.coach.map((tip) => (
-              <li key={tip.id} className="rounded-xl border border-nx-border/60 bg-nx-elevated/50 px-4 py-3">
+              <li
+                key={tip.id}
+                className="rounded-xl border border-nx-border/60 bg-nx-elevated/50 px-4 py-3"
+              >
                 <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <p className="text-sm font-semibold text-nx-ink">{tip.title}</p>
                   <KindBadge kind={tip.kind} />
@@ -177,7 +199,10 @@ export function CreatorDashboard() {
               </li>
             ))}
           </ul>
-          <Link href="/creator/coach" className="mt-4 inline-block text-sm text-nx-accent hover:underline">
+          <Link
+            href="/creator/coach"
+            className="mt-4 inline-block text-sm text-nx-accent hover:underline"
+          >
             Full coach →
           </Link>
         </section>
@@ -185,11 +210,26 @@ export function CreatorDashboard() {
 
       <div className="mt-10 grid gap-4 sm:grid-cols-3">
         {[
-          { title: 'Higher earnings potential', items: data.highCpm, href: '/creator/opportunities' },
-          { title: 'Lower competition', items: data.lowCompetition, href: '/creator/opportunities' },
-          { title: 'Stronger search interest', items: data.highSearchVolume, href: '/creator/opportunities' },
+          {
+            title: 'Higher earnings potential',
+            items: data.highCpm,
+            href: '/creator/opportunities',
+          },
+          {
+            title: 'Lower competition',
+            items: data.lowCompetition,
+            href: '/creator/opportunities',
+          },
+          {
+            title: 'Stronger search interest',
+            items: data.highSearchVolume,
+            href: '/creator/opportunities',
+          },
         ].map((col) => (
-          <section key={col.title} className="rounded-2xl border border-nx-border/70 bg-nx-elevated/40 p-4">
+          <section
+            key={col.title}
+            className="rounded-2xl border border-nx-border/70 bg-nx-elevated/40 p-4"
+          >
             <h2 className="font-display text-base font-semibold text-nx-ink">{col.title}</h2>
             <ul className="mt-3 space-y-2">
               {col.items.slice(0, 4).map((item) => (
@@ -199,7 +239,10 @@ export function CreatorDashboard() {
                 </li>
               ))}
             </ul>
-            <Link href={col.href} className="mt-3 inline-block text-xs text-nx-accent hover:underline">
+            <Link
+              href={col.href}
+              className="mt-3 inline-block text-xs text-nx-accent hover:underline"
+            >
               View all
             </Link>
           </section>

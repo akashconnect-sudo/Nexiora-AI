@@ -103,7 +103,9 @@ export function CreatorOnboarding() {
   return (
     <div className="mx-auto max-w-2xl px-4 py-10 sm:px-8">
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-nx-accent">Onboarding</p>
-      <h1 className="mt-2 font-display text-3xl font-semibold text-nx-ink">Create your Creator Profile</h1>
+      <h1 className="mt-2 font-display text-3xl font-semibold text-nx-ink">
+        Create your Creator Profile
+      </h1>
       <p className="mt-2 text-sm leading-relaxed text-nx-muted">
         We only use what you allow. YouTube performance details stay off until you connect your
         channel.

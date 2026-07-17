@@ -38,7 +38,8 @@ export function UpgradeModal({ open, onClose }: UpgradeModalProps) {
           Activate Free for $2
         </h2>
         <p className="mt-3 text-sm leading-6 text-nx-muted">
-          You can stay signed in, but Nova Search unlocks only after payment. Start with Free ($2 one-time), or choose Pro / Business for higher limits.
+          You can stay signed in, but Nova Search unlocks only after payment. Start with Free ($2
+          one-time), or choose Pro / Business for higher limits.
         </p>
 
         <div className="mt-6 grid gap-3 sm:grid-cols-3">
@@ -61,7 +62,9 @@ export function UpgradeModal({ open, onClose }: UpgradeModalProps) {
             <Button className="w-full">Pay &amp; activate</Button>
           </Link>
           <Link href="/pricing" className="flex-1">
-            <Button variant="secondary" className="w-full">View pricing</Button>
+            <Button variant="secondary" className="w-full">
+              View pricing
+            </Button>
           </Link>
         </div>
       </div>

@@ -44,7 +44,9 @@ export function SettingsPanel() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-8">
       <p className="text-xs font-semibold uppercase tracking-[0.16em] text-nx-accent">Settings</p>
-      <h1 className="mt-1 font-display text-3xl font-semibold text-nx-ink">Account & preferences</h1>
+      <h1 className="mt-1 font-display text-3xl font-semibold text-nx-ink">
+        Account & preferences
+      </h1>
       <p className="mt-2 text-sm text-nx-muted">
         Control how Nova Search looks and behaves on this device.
       </p>
@@ -127,9 +129,7 @@ export function SettingsPanel() {
             type="checkbox"
             className="mt-1"
             checked={prefs.openCitationsInNewTab}
-            onChange={(e) =>
-              updatePrefs({ ...prefs, openCitationsInNewTab: e.target.checked })
-            }
+            onChange={(e) => updatePrefs({ ...prefs, openCitationsInNewTab: e.target.checked })}
           />
           <span>
             <span className="font-medium text-nx-ink">Open citations in a new tab</span>
@@ -143,7 +143,8 @@ export function SettingsPanel() {
       <section className="mt-6 rounded-nx border border-nx-border bg-nx-elevated p-5 sm:p-6">
         <h2 className="font-display text-lg font-semibold text-nx-ink">Session</h2>
         <p className="mt-1 text-sm text-nx-muted">
-          Log out clears your session on this device. Your search history stays available when you sign back in.
+          Log out clears your session on this device. Your search history stays available when you
+          sign back in.
         </p>
         <Button
           variant="secondary"

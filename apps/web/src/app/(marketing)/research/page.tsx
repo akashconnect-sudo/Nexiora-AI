@@ -7,7 +7,12 @@ export const metadata = buildMetadata({
   description:
     'Use Nova Search research mode to prioritize academic and documentation sources, then inspect citations before you cite them yourself.',
   path: '/research',
-  keywords: ['academic AI search', 'research mode', 'cited literature search', 'Nova Search research'],
+  keywords: [
+    'academic AI search',
+    'research mode',
+    'cited literature search',
+    'Nova Search research',
+  ],
 });
 
 export default function ResearchPage() {

@@ -37,7 +37,11 @@ export function CreatorCoach() {
             <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
               <h2 className="font-display text-lg font-semibold text-nx-ink">{tip.title}</h2>
               <span className="text-[10px] font-semibold uppercase text-nx-accent">
-                {tip.kind === 'verified' ? 'From your channel' : tip.kind === 'signal' ? 'From the news' : 'Suggested'}
+                {tip.kind === 'verified'
+                  ? 'From your channel'
+                  : tip.kind === 'signal'
+                    ? 'From the news'
+                    : 'Suggested'}
               </span>
             </div>
             <p className="mt-3 text-sm text-nx-muted">{tip.body}</p>

@@ -420,15 +420,15 @@ model Notification {
 
 ## 4. Redis Keys
 
-| Key pattern | TTL | Purpose |
-|-------------|-----|---------|
-| `rl:user:{id}:{minute}` | 2m | Rate limit |
-| `rl:ip:{hash}:{minute}` | 2m | Anon rate limit |
-| `cache:search:{hash}` | 5m–24h | Hot answer cache |
-| `trend:global` | 15m | Trending payload |
-| `session:ws:{id}` | 1h | WS search stream state |
-| `entitlement:{userId}` | 5m | Plan entitlements cache |
-| `lock:search:{id}` | 30s | Idempotency |
+| Key pattern             | TTL    | Purpose                 |
+| ----------------------- | ------ | ----------------------- |
+| `rl:user:{id}:{minute}` | 2m     | Rate limit              |
+| `rl:ip:{hash}:{minute}` | 2m     | Anon rate limit         |
+| `cache:search:{hash}`   | 5m–24h | Hot answer cache        |
+| `trend:global`          | 15m    | Trending payload        |
+| `session:ws:{id}`       | 1h     | WS search stream state  |
+| `entitlement:{userId}`  | 5m     | Plan entitlements cache |
+| `lock:search:{id}`      | 30s    | Idempotency             |
 
 ---
 

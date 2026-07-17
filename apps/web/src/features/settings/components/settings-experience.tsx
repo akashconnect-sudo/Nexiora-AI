@@ -9,7 +9,14 @@ import { authHeaders, clearSession, getSessionUser, type SessionUser } from '@/l
 import { DEFAULT_PREFS, loadPrefs, savePrefs, type UserPrefs } from '@/lib/prefs';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
-const SECTIONS = ['account', 'security', 'preferences', 'notifications', 'privacy', 'billing'] as const;
+const SECTIONS = [
+  'account',
+  'security',
+  'preferences',
+  'notifications',
+  'privacy',
+  'billing',
+] as const;
 type Section = (typeof SECTIONS)[number];
 
 type Subscription = {
@@ -137,8 +144,12 @@ export function SettingsExperience({ initialSection = 'account' }: { initialSect
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-nx-accent">Settings</p>
       <div className="mt-1 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="font-display text-3xl font-semibold text-nx-ink">Your Nexiora workspace</h1>
-          <p className="mt-2 text-sm text-nx-muted">Manage your account, search experience, privacy, and plan.</p>
+          <h1 className="font-display text-3xl font-semibold text-nx-ink">
+            Your Nexiora workspace
+          </h1>
+          <p className="mt-2 text-sm text-nx-muted">
+            Manage your account, search experience, privacy, and plan.
+          </p>
         </div>
         {saved ? <span className="text-sm font-medium text-nx-accent">Changes saved</span> : null}
       </div>
@@ -171,7 +182,10 @@ export function SettingsExperience({ initialSection = 'account' }: { initialSect
           ) : null}
 
           {section === 'security' ? (
-            <SettingsSection title="Security" description="Review this session and protect account access.">
+            <SettingsSection
+              title="Security"
+              description="Review this session and protect account access."
+            >
               <InfoRow label="Authentication" value="Email one-time code" />
               <InfoRow label="Current session" value="Active on this device" />
               <p className="mt-5 text-sm leading-6 text-nx-muted">
@@ -191,7 +205,10 @@ export function SettingsExperience({ initialSection = 'account' }: { initialSect
           ) : null}
 
           {section === 'preferences' ? (
-            <SettingsSection title="Preferences" description="Choose how Nova looks and starts a search.">
+            <SettingsSection
+              title="Preferences"
+              description="Choose how Nova looks and starts a search."
+            >
               <FieldLabel label="Theme">
                 <div className="flex flex-wrap gap-2">
                   {(['light', 'dark', 'system'] as const).map((item) => (
@@ -200,7 +217,9 @@ export function SettingsExperience({ initialSection = 'account' }: { initialSect
                       type="button"
                       onClick={() => setTheme(item)}
                       className={`rounded-lg px-3 py-2 text-sm capitalize ${
-                        theme === item ? 'bg-nx-accent text-white' : 'border border-nx-border text-nx-muted'
+                        theme === item
+                          ? 'bg-nx-accent text-white'
+                          : 'border border-nx-border text-nx-muted'
                       }`}
                     >
                       {item}
@@ -212,7 +231,10 @@ export function SettingsExperience({ initialSection = 'account' }: { initialSect
                 <select
                   value={prefs.defaultMode}
                   onChange={(event) =>
-                    updatePrefs({ ...prefs, defaultMode: event.target.value as UserPrefs['defaultMode'] })
+                    updatePrefs({
+                      ...prefs,
+                      defaultMode: event.target.value as UserPrefs['defaultMode'],
+                    })
                   }
                   className="h-11 w-full rounded-lg border border-nx-border bg-nx-bg px-3 text-sm text-nx-ink"
                 >
@@ -230,19 +252,42 @@ export function SettingsExperience({ initialSection = 'account' }: { initialSect
           ) : null}
 
           {section === 'notifications' ? (
-            <SettingsSection title="Notifications" description="Control the product messages you want to receive.">
-              <Toggle label="Product updates" checked={prefs.productUpdates} onChange={(checked) => updatePrefs({ ...prefs, productUpdates: checked })} />
-              <Toggle label="Usage and quota alerts" checked={prefs.quotaAlerts} onChange={(checked) => updatePrefs({ ...prefs, quotaAlerts: checked })} />
-              <Toggle label="Tips and marketing emails" checked={prefs.marketingEmails} onChange={(checked) => updatePrefs({ ...prefs, marketingEmails: checked })} />
+            <SettingsSection
+              title="Notifications"
+              description="Control the product messages you want to receive."
+            >
+              <Toggle
+                label="Product updates"
+                checked={prefs.productUpdates}
+                onChange={(checked) => updatePrefs({ ...prefs, productUpdates: checked })}
+              />
+              <Toggle
+                label="Usage and quota alerts"
+                checked={prefs.quotaAlerts}
+                onChange={(checked) => updatePrefs({ ...prefs, quotaAlerts: checked })}
+              />
+              <Toggle
+                label="Tips and marketing emails"
+                checked={prefs.marketingEmails}
+                onChange={(checked) => updatePrefs({ ...prefs, marketingEmails: checked })}
+              />
             </SettingsSection>
           ) : null}
 
           {section === 'privacy' ? (
-            <SettingsSection title="Privacy" description="Set safer defaults for retrieved content.">
+            <SettingsSection
+              title="Privacy"
+              description="Set safer defaults for retrieved content."
+            >
               <FieldLabel label="Safe Search">
                 <select
                   value={prefs.safeSearch}
-                  onChange={(event) => updatePrefs({ ...prefs, safeSearch: event.target.value as UserPrefs['safeSearch'] })}
+                  onChange={(event) =>
+                    updatePrefs({
+                      ...prefs,
+                      safeSearch: event.target.value as UserPrefs['safeSearch'],
+                    })
+                  }
                   className="h-11 w-full rounded-lg border border-nx-border bg-nx-bg px-3 text-sm text-nx-ink"
                 >
                   <option value="strict">Strict</option>
@@ -251,27 +296,41 @@ export function SettingsExperience({ initialSection = 'account' }: { initialSect
                 </select>
               </FieldLabel>
               <p className="mt-5 text-sm leading-6 text-nx-muted">
-                Search queries and usage metadata may be retained for history, safety, and abuse prevention.
+                Search queries and usage metadata may be retained for history, safety, and abuse
+                prevention.
               </p>
               <div className="mt-4 flex gap-4 text-sm">
-                <Link href="/privacy" className="text-nx-accent hover:underline">Privacy policy</Link>
-                <Link href="/terms" className="text-nx-accent hover:underline">Terms</Link>
+                <Link href="/privacy" className="text-nx-accent hover:underline">
+                  Privacy policy
+                </Link>
+                <Link href="/terms" className="text-nx-accent hover:underline">
+                  Terms
+                </Link>
               </div>
             </SettingsSection>
           ) : null}
 
           {section === 'billing' ? (
-            <SettingsSection title="Billing & payments" description="Activate access, manage your plan, and view invoices.">
+            <SettingsSection
+              title="Billing & payments"
+              description="Activate access, manage your plan, and view invoices."
+            >
               {!subscription?.accessGranted ? (
                 <div className="mb-6 rounded-xl border border-nx-accent/40 bg-nx-accent-soft/30 p-5">
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-nx-accent">Payment required</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-nx-accent">
+                    Payment required
+                  </p>
                   <h3 className="mt-2 font-display text-xl font-semibold text-nx-ink">
                     Pay $2 to activate Free access
                   </h3>
                   <p className="mt-2 text-sm leading-6 text-nx-muted">
                     You can sign in, but Nova Search unlocks only after the Free activation payment.
                   </p>
-                  <Button className="mt-5" disabled={billingBusy} onClick={() => void startCheckout('free')}>
+                  <Button
+                    className="mt-5"
+                    disabled={billingBusy}
+                    onClick={() => void startCheckout('free')}
+                  >
                     Pay $2 &amp; activate Free
                   </Button>
                 </div>
@@ -289,7 +348,11 @@ export function SettingsExperience({ initialSection = 'account' }: { initialSect
                     </p>
                   </div>
                   {subscription?.accessGranted && subscription.planId !== 'free' ? (
-                    <Button variant="secondary" disabled={billingBusy} onClick={() => void openPortal()}>
+                    <Button
+                      variant="secondary"
+                      disabled={billingBusy}
+                      onClick={() => void openPortal()}
+                    >
                       Manage payment
                     </Button>
                   ) : null}
@@ -319,12 +382,22 @@ export function SettingsExperience({ initialSection = 'account' }: { initialSect
                   busy={billingBusy}
                 />
               </div>
-              {billingMessage ? <p className="mt-4 rounded-lg border border-nx-border p-3 text-sm text-nx-muted">{billingMessage}</p> : null}
+              {billingMessage ? (
+                <p className="mt-4 rounded-lg border border-nx-border p-3 text-sm text-nx-muted">
+                  {billingMessage}
+                </p>
+              ) : null}
 
               <div className="mt-8">
                 <div className="flex items-center justify-between gap-3">
-                  <h3 className="font-display text-lg font-semibold text-nx-ink">Bills & invoices</h3>
-                  <Button variant="secondary" disabled={billingBusy} onClick={() => void loadBilling()}>
+                  <h3 className="font-display text-lg font-semibold text-nx-ink">
+                    Bills & invoices
+                  </h3>
+                  <Button
+                    variant="secondary"
+                    disabled={billingBusy}
+                    onClick={() => void loadBilling()}
+                  >
                     Refresh
                   </Button>
                 </div>
@@ -334,9 +407,14 @@ export function SettingsExperience({ initialSection = 'account' }: { initialSect
                 {invoices.length ? (
                   <ul className="mt-3 divide-y divide-nx-border rounded-xl border border-nx-border">
                     {invoices.map((invoice) => (
-                      <li key={invoice.id} className="flex flex-wrap items-center justify-between gap-3 p-4 text-sm">
+                      <li
+                        key={invoice.id}
+                        className="flex flex-wrap items-center justify-between gap-3 p-4 text-sm"
+                      >
                         <div>
-                          <p className="font-medium text-nx-ink">{invoice.label ?? invoice.number ?? invoice.id}</p>
+                          <p className="font-medium text-nx-ink">
+                            {invoice.label ?? invoice.number ?? invoice.id}
+                          </p>
                           <p className="text-nx-muted">
                             {new Date(invoice.createdAt).toLocaleString()} · {invoice.status}
                             {invoice.kind === 'receipt' ? ' · receipt' : ' · invoice'}
@@ -350,12 +428,22 @@ export function SettingsExperience({ initialSection = 'account' }: { initialSect
                             }).format(invoice.amountPaid / 100)}
                           </span>
                           {invoice.hostedUrl ? (
-                            <a href={invoice.hostedUrl} target="_blank" rel="noreferrer" className="text-nx-accent hover:underline">
+                            <a
+                              href={invoice.hostedUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-nx-accent hover:underline"
+                            >
                               View bill
                             </a>
                           ) : null}
                           {invoice.pdfUrl ? (
-                            <a href={invoice.pdfUrl} target="_blank" rel="noreferrer" className="text-nx-accent hover:underline">
+                            <a
+                              href={invoice.pdfUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-nx-accent hover:underline"
+                            >
                               Download
                             </a>
                           ) : null}
@@ -365,7 +453,8 @@ export function SettingsExperience({ initialSection = 'account' }: { initialSect
                   </ul>
                 ) : (
                   <p className="mt-3 rounded-xl border border-dashed border-nx-border p-5 text-sm text-nx-muted">
-                    No bills yet. After you pay $2 (or any plan), your bill shows up here automatically.
+                    No bills yet. After you pay $2 (or any plan), your bill shows up here
+                    automatically.
                   </p>
                 )}
               </div>
@@ -377,7 +466,15 @@ export function SettingsExperience({ initialSection = 'account' }: { initialSect
   );
 }
 
-function SettingsSection({ title, description, children }: { title: string; description: string; children: React.ReactNode }) {
+function SettingsSection({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description: string;
+  children: React.ReactNode;
+}) {
   return (
     <section>
       <h2 className="font-display text-2xl font-semibold text-nx-ink">{title}</h2>
@@ -391,25 +488,59 @@ function InfoRow({ label, value, mono = false }: { label: string; value: string;
   return (
     <div className="flex flex-col gap-1 border-b border-nx-border py-4 first:pt-0 sm:flex-row sm:justify-between">
       <span className="text-sm text-nx-muted">{label}</span>
-      <span className={`${mono ? 'font-mono text-xs' : 'text-sm font-medium'} break-all text-nx-ink`}>{value}</span>
+      <span
+        className={`${mono ? 'font-mono text-xs' : 'text-sm font-medium'} break-all text-nx-ink`}
+      >
+        {value}
+      </span>
     </div>
   );
 }
 
 function FieldLabel({ label, children }: { label: string; children: React.ReactNode }) {
-  return <label className="mb-5 block max-w-lg text-sm text-nx-muted"><span className="mb-2 block">{label}</span>{children}</label>;
-}
-
-function Toggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (checked: boolean) => void }) {
   return (
-    <label className="flex cursor-pointer items-center justify-between gap-4 border-b border-nx-border py-4">
-      <span className="text-sm font-medium text-nx-ink">{label}</span>
-      <input type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} className="h-4 w-4 accent-[var(--nx-accent)]" />
+    <label className="mb-5 block max-w-lg text-sm text-nx-muted">
+      <span className="mb-2 block">{label}</span>
+      {children}
     </label>
   );
 }
 
-function PlanCard({ name, price, description, onClick, busy }: { name: string; price: string; description: string; onClick: () => void; busy: boolean }) {
+function Toggle({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+}) {
+  return (
+    <label className="flex cursor-pointer items-center justify-between gap-4 border-b border-nx-border py-4">
+      <span className="text-sm font-medium text-nx-ink">{label}</span>
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(event) => onChange(event.target.checked)}
+        className="h-4 w-4 accent-[var(--nx-accent)]"
+      />
+    </label>
+  );
+}
+
+function PlanCard({
+  name,
+  price,
+  description,
+  onClick,
+  busy,
+}: {
+  name: string;
+  price: string;
+  description: string;
+  onClick: () => void;
+  busy: boolean;
+}) {
   return (
     <div className="rounded-xl border border-nx-border p-5">
       <div className="flex items-baseline justify-between gap-3">
@@ -417,7 +548,9 @@ function PlanCard({ name, price, description, onClick, busy }: { name: string; p
         <span className="text-sm text-nx-muted">{price}</span>
       </div>
       <p className="mt-2 text-sm text-nx-muted">{description}</p>
-      <Button className="mt-5 w-full" disabled={busy} onClick={onClick}>Choose {name}</Button>
+      <Button className="mt-5 w-full" disabled={busy} onClick={onClick}>
+        Choose {name}
+      </Button>
     </div>
   );
 }

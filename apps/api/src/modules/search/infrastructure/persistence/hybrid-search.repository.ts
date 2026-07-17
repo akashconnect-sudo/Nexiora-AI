@@ -221,7 +221,8 @@ export class HybridSearchRepository implements SearchRepositoryPort {
           include: { answer: { include: { citations: true } } },
         });
         const items = rows.slice(0, limit).map(fromPrisma);
-        const next = rows.length > limit ? rows[limit - 1]?.createdAt.toISOString() ?? null : null;
+        const next =
+          rows.length > limit ? (rows[limit - 1]?.createdAt.toISOString() ?? null) : null;
         return { items, nextCursor: next };
       } catch (error) {
         this.logger.warn(`Prisma history failed: ${(error as Error).message}`);
@@ -233,7 +234,7 @@ export class HybridSearchRepository implements SearchRepositoryPort {
     const items = slice.slice(0, limit);
     return {
       items,
-      nextCursor: slice.length > limit ? items[items.length - 1]?.createdAt ?? null : null,
+      nextCursor: slice.length > limit ? (items[items.length - 1]?.createdAt ?? null) : null,
     };
   }
 

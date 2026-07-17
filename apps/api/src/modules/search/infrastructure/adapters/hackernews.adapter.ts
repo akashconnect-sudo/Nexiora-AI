@@ -1,9 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  canonicalizeUrl,
-  extractDomain,
-  type RetrievedDocument,
-} from '@nexiora/search-core';
+import { canonicalizeUrl, extractDomain, type RetrievedDocument } from '@nexiora/search-core';
 import type { SearchFilters } from '@nexiora/shared';
 import type { RetrievalAdapter } from '../../application/ports/retrieval-adapter.port';
 

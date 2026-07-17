@@ -42,10 +42,7 @@ export class LlmRouterAdapter implements GenerationPort {
   ): Promise<GenerationResult> {
     const sources = input.documents
       .slice(0, 8)
-      .map(
-        (d, i) =>
-          `[${i + 1}] ${d.title} | ${d.url} | trust=${d.trustScore}\n${d.snippet}`,
-      )
+      .map((d, i) => `[${i + 1}] ${d.title} | ${d.url} | trust=${d.trustScore}\n${d.snippet}`)
       .join('\n\n');
 
     const system = `You are Nova Search by Nexiora AI. Answer ONLY using the numbered sources. Cite as [n]. If sources are insufficient, say so. Return JSON with keys: summary, detailedMarkdown, confidence (0-100), relatedQuestions (string[]), betterQueries (string[]).`;

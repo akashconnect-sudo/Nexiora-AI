@@ -7,8 +7,8 @@
   --nx-accent: #0f766e;
   --nx-accent-soft: #ccfbf1;
   --nx-danger: #b42318;
-  --nx-font-display: "Satoshi", "General Sans", "Avenir Next", system-ui, sans-serif;
-  --nx-font-body: "Satoshi", "General Sans", "Avenir Next", system-ui, sans-serif;
+  --nx-font-display: 'Satoshi', 'General Sans', 'Avenir Next', system-ui, sans-serif;
+  --nx-font-body: 'Satoshi', 'General Sans', 'Avenir Next', system-ui, sans-serif;
   --nx-radius-md: 10px;
 }
 

@@ -10,8 +10,8 @@ export function SiteFooter() {
         <div>
           <p className="font-display text-lg font-semibold text-nx-ink">{siteConfig.name}</p>
           <p className="mt-3 max-w-xs text-sm leading-relaxed text-nx-muted">
-            {siteConfig.product} helps you verify answers with ranked sources, confidence scores, and
-            clear timestamps.
+            {siteConfig.product} helps you verify answers with ranked sources, confidence scores,
+            and clear timestamps.
           </p>
         </div>
         {footerColumns.map((column) => (

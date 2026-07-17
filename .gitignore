@@ -39,3 +39,6 @@ apps/mobile/.expo
 # Generated
 packages/api-client/src/generated
 .vercel
+
+# Local editor history
+.history/

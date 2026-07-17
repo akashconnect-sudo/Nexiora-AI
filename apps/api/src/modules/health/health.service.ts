@@ -20,10 +20,7 @@ export class HealthService {
   }
 
   async readiness(): Promise<ReadyResponse> {
-    const [database, redis] = await Promise.all([
-      this.prisma.isHealthy(),
-      this.redis.isHealthy(),
-    ]);
+    const [database, redis] = await Promise.all([this.prisma.isHealthy(), this.redis.isHealthy()]);
 
     const checks = { database, redis };
     const ready = Object.values(checks).every(Boolean);

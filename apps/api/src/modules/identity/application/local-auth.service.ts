@@ -86,14 +86,21 @@ export class LocalAuthService {
     };
   }
 
-  async verifyOtp(challengeId: string, codeRaw: string): Promise<{
+  async verifyOtp(
+    challengeId: string,
+    codeRaw: string,
+  ): Promise<{
     accessToken: string;
     expiresInSec: number;
     user: AppUser;
   }> {
     const challenge = this.challenges.get(challengeId);
     if (!challenge) {
-      throw new DomainError(ERROR_CODES.UNAUTHORIZED, 'Code expired or invalid. Request a new one.', 401);
+      throw new DomainError(
+        ERROR_CODES.UNAUTHORIZED,
+        'Code expired or invalid. Request a new one.',
+        401,
+      );
     }
     if (challenge.expiresAt < Date.now()) {
       this.challenges.delete(challengeId);
@@ -101,7 +108,11 @@ export class LocalAuthService {
     }
     if (challenge.attempts >= 5) {
       this.challenges.delete(challengeId);
-      throw new DomainError(ERROR_CODES.RATE_LIMITED, 'Too many attempts. Request a new code.', 429);
+      throw new DomainError(
+        ERROR_CODES.RATE_LIMITED,
+        'Too many attempts. Request a new code.',
+        429,
+      );
     }
 
     challenge.attempts += 1;

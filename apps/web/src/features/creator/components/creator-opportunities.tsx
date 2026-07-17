@@ -45,7 +45,9 @@ export function CreatorOpportunities() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-8">
       <h1 className="font-display text-3xl font-semibold text-nx-ink">Content opportunities</h1>
-      <p className="mt-2 text-sm text-nx-muted">{disclaimer || 'Ranked by how strong the opportunity looks today.'}</p>
+      <p className="mt-2 text-sm text-nx-muted">
+        {disclaimer || 'Ranked by how strong the opportunity looks today.'}
+      </p>
       {error ? <p className="mt-4 text-sm text-nx-danger">{error}</p> : null}
       <ul className="mt-8 space-y-4">
         {items.map((item) => (

@@ -42,7 +42,10 @@ export function CreatorTrends() {
       {error ? <p className="mt-4 text-sm text-nx-danger">{error}</p> : null}
       <ul className="mt-8 divide-y divide-nx-border overflow-hidden rounded-2xl border border-nx-border bg-nx-elevated/50">
         {items.map((item) => (
-          <li key={item.url} className="flex flex-col gap-2 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <li
+            key={item.url}
+            className="flex flex-col gap-2 px-4 py-4 sm:flex-row sm:items-center sm:justify-between"
+          >
             <div className="min-w-0">
               <p className="text-xs text-nx-muted">
                 {item.category} · {item.source}

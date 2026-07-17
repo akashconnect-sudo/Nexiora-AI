@@ -77,11 +77,7 @@ function buildSummary(query: string, docs: readonly RankedDocument[]): string {
   return truncate(text, 600);
 }
 
-function buildDetailed(
-  query: string,
-  intent: string,
-  docs: readonly RankedDocument[],
-): string {
+function buildDetailed(query: string, intent: string, docs: readonly RankedDocument[]): string {
   const focus =
     intent === 'news'
       ? 'This search focused on recent coverage.'
@@ -89,13 +85,7 @@ function buildDetailed(
         ? 'This search prioritized research and reference sources.'
         : 'This search looked across general and trusted sources.';
 
-  const lines: string[] = [
-    `## Answer`,
-    ``,
-    focus,
-    ``,
-    `### Key points`,
-  ];
+  const lines: string[] = [`## Answer`, ``, focus, ``, `### Key points`];
 
   docs.slice(0, 5).forEach((doc, i) => {
     lines.push(

@@ -19,16 +19,16 @@
 
 ## 2. Visual Direction
 
-| Token | Direction |
-|-------|-----------|
-| Mood | Precision, calm authority, “editorial tech” |
-| Light | Cool paper white with soft graphite ink; subtle grid/noise atmosphere |
-| Dark | Deep charcoal (not pure black) with restrained teal accent |
-| Accent | Single teal/cyan signal for CTA and confidence — avoid purple/indigo AI cliché |
-| Display font | Distinctive geometric sans (e.g. Satoshi / General Sans) — not Inter/Roboto |
-| Body | Highly readable grotesque companion |
-| Radius | Modest (6–10px); no pill overload |
-| Motion | 2–3 intentional motions: omnibox focus glow settle, answer stream fade-in, citation rail stagger |
+| Token        | Direction                                                                                        |
+| ------------ | ------------------------------------------------------------------------------------------------ |
+| Mood         | Precision, calm authority, “editorial tech”                                                      |
+| Light        | Cool paper white with soft graphite ink; subtle grid/noise atmosphere                            |
+| Dark         | Deep charcoal (not pure black) with restrained teal accent                                       |
+| Accent       | Single teal/cyan signal for CTA and confidence — avoid purple/indigo AI cliché                   |
+| Display font | Distinctive geometric sans (e.g. Satoshi / General Sans) — not Inter/Roboto                      |
+| Body         | Highly readable grotesque companion                                                              |
+| Radius       | Modest (6–10px); no pill overload                                                                |
+| Motion       | 2–3 intentional motions: omnibox focus glow settle, answer stream fade-in, citation rail stagger |
 
 **Forbidden on brand surfaces:** purple-on-white gradients, cream+terracotta broadsheet clone, emoji decoration, floating badge spam on hero media.
 
@@ -113,12 +113,12 @@ React Virtual for long citation/history lists.
 
 ## 6. Motion Spec
 
-| Motion | Where | Duration |
-|--------|-------|----------|
-| Omnibox elevate | Focus | 180ms |
-| Token fade | Answer stream | per chunk |
-| Citation stagger | Rail populate | 40ms cascade |
-| Page transition | App routes | 200ms fade (respect reduced motion → none) |
+| Motion           | Where         | Duration                                   |
+| ---------------- | ------------- | ------------------------------------------ |
+| Omnibox elevate  | Focus         | 180ms                                      |
+| Token fade       | Answer stream | per chunk                                  |
+| Citation stagger | Rail populate | 40ms cascade                               |
+| Page transition  | App routes    | 200ms fade (respect reduced motion → none) |
 
 ---
 

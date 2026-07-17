@@ -1,9 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  canonicalizeUrl,
-  extractDomain,
-  type RetrievedDocument,
-} from '@nexiora/search-core';
+import { canonicalizeUrl, extractDomain, type RetrievedDocument } from '@nexiora/search-core';
 import type { SearchFilters } from '@nexiora/shared';
 import { cleanDisplayText } from '@nexiora/shared';
 import type { RetrievalAdapter } from '../../application/ports/retrieval-adapter.port';
@@ -82,9 +78,7 @@ export class OpenAlexRetrievalAdapter implements RetrievalAdapter {
   }
 }
 
-function reconstructAbstract(
-  inverted: Record<string, number[]> | null | undefined,
-): string | null {
+function reconstructAbstract(inverted: Record<string, number[]> | null | undefined): string | null {
   if (!inverted) return null;
   const pairs: Array<{ word: string; pos: number }> = [];
   for (const [word, positions] of Object.entries(inverted)) {

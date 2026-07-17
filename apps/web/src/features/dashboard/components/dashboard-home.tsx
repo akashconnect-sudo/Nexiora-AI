@@ -62,7 +62,8 @@ export function DashboardHome() {
           }
         }
       } catch {
-        if (!cancelled) setHistoryNote('Recent searches are unavailable right now. Try again shortly.');
+        if (!cancelled)
+          setHistoryNote('Recent searches are unavailable right now. Try again shortly.');
       }
     }
     void loadHistory();
@@ -99,8 +100,8 @@ export function DashboardHome() {
             {hello}, {name}
           </h1>
           <p className="mt-2 max-w-xl text-sm leading-relaxed text-nx-muted">
-            Live headlines on the right. Search anything below — every answer ships with citations you
-            can open and check.
+            Live headlines on the right. Search anything below — every answer ships with citations
+            you can open and check.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -191,13 +192,16 @@ export function DashboardHome() {
             <h2 className="font-display text-lg font-semibold text-nx-ink">Where things live</h2>
             <ul className="mt-4 space-y-3 text-sm text-nx-muted">
               <li>
-                <span className="font-medium text-nx-ink">Search</span> — ask anything, get cited answers
+                <span className="font-medium text-nx-ink">Search</span> — ask anything, get cited
+                answers
               </li>
               <li>
-                <span className="font-medium text-nx-ink">News</span> — live headlines; synthesize any story
+                <span className="font-medium text-nx-ink">News</span> — live headlines; synthesize
+                any story
               </li>
               <li>
-                <span className="font-medium text-nx-ink">Library</span> — your history and bookmarks
+                <span className="font-medium text-nx-ink">Library</span> — your history and
+                bookmarks
               </li>
               <li>
                 <span className="font-medium text-nx-ink">Settings</span> — theme, account, defaults

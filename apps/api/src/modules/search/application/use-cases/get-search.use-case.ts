@@ -1,16 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ERROR_CODES } from '@nexiora/shared';
 import { DomainError } from '../../../../common/errors/domain-error';
-import {
-  SEARCH_REPOSITORY_PORT,
-  type SearchRepositoryPort,
-} from '../ports/search-repository.port';
+import { SEARCH_REPOSITORY_PORT, type SearchRepositoryPort } from '../ports/search-repository.port';
 
 @Injectable()
 export class GetSearchUseCase {
-  constructor(
-    @Inject(SEARCH_REPOSITORY_PORT) private readonly repo: SearchRepositoryPort,
-  ) {}
+  constructor(@Inject(SEARCH_REPOSITORY_PORT) private readonly repo: SearchRepositoryPort) {}
 
   async execute(id: string, userId: string) {
     const record = await this.repo.findById(id);

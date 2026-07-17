@@ -15,29 +15,29 @@ paths:
       tags: [health]
       summary: Liveness probe
       responses:
-        "200":
+        '200':
           description: Process is alive
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/HealthResponse"
+                $ref: '#/components/schemas/HealthResponse'
   /ready:
     get:
       tags: [health]
       summary: Readiness probe
       responses:
-        "200":
+        '200':
           description: Dependency checks
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ReadyResponse"
+                $ref: '#/components/schemas/ReadyResponse'
   /v1/auth/status:
     get:
       tags: [auth]
       summary: Identity provider configuration status
       responses:
-        "200":
+        '200':
           description: Clerk configuration (no secrets)
   /v1/auth/me:
     get:
@@ -46,9 +46,9 @@ paths:
       security:
         - bearerAuth: []
       responses:
-        "200":
+        '200':
           description: User projection
-        "401":
+        '401':
           description: Unauthorized
   /v1/creator/dashboard:
     get:
@@ -57,9 +57,9 @@ paths:
       security:
         - bearerAuth: []
       responses:
-        "200":
+        '200':
           description: Greeting, opportunities, trends, coach tips (prediction|signal|verified)
-        "401":
+        '401':
           description: Unauthorized
   /v1/creator/profile:
     get:
@@ -68,7 +68,7 @@ paths:
       security:
         - bearerAuth: []
       responses:
-        "200":
+        '200':
           description: Creator profile + permissions
     put:
       tags: [creator]
@@ -76,7 +76,7 @@ paths:
       security:
         - bearerAuth: []
       responses:
-        "200":
+        '200':
           description: Updated profile
   /v1/creator/permissions:
     patch:
@@ -85,7 +85,7 @@ paths:
       security:
         - bearerAuth: []
       responses:
-        "200":
+        '200':
           description: Updated permissions map
   /v1/creator/opportunities:
     get:
@@ -94,7 +94,7 @@ paths:
       security:
         - bearerAuth: []
       responses:
-        "200":
+        '200':
           description: Opportunity list
   /v1/creator/ideas:
     post:
@@ -103,7 +103,7 @@ paths:
       security:
         - bearerAuth: []
       responses:
-        "200":
+        '200':
           description: Idea pack (prediction-labeled)
 components:
   securitySchemes:

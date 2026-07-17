@@ -14,14 +14,8 @@ import {
   type GenerationChunk,
   type GenerationPort,
 } from '../ports/generation.port';
-import {
-  RETRIEVAL_ADAPTERS,
-  type RetrievalAdapter,
-} from '../ports/retrieval-adapter.port';
-import {
-  SEARCH_REPOSITORY_PORT,
-  type SearchRepositoryPort,
-} from '../ports/search-repository.port';
+import { RETRIEVAL_ADAPTERS, type RetrievalAdapter } from '../ports/retrieval-adapter.port';
+import { SEARCH_REPOSITORY_PORT, type SearchRepositoryPort } from '../ports/search-repository.port';
 import { SEARCH_EVENT_BUS, SearchEventBus } from '../search-event-bus';
 
 export interface ExecuteSearchCommand {
@@ -47,9 +41,7 @@ export class ExecuteSearchUseCase {
 
   async execute(
     command: ExecuteSearchCommand,
-  ): Promise<
-    SearchRecord & { quota: { limitType: 'lifetime' | 'daily'; remaining: number } }
-  > {
+  ): Promise<SearchRecord & { quota: { limitType: 'lifetime' | 'daily'; remaining: number } }> {
     const parsed = CreateSearchRequestSchema.safeParse(command.body);
     if (!parsed.success) {
       throw new DomainError(
@@ -107,9 +99,7 @@ export class ExecuteSearchUseCase {
 
       const docs = settled.flatMap((result, index) => {
         if (result.status === 'fulfilled') return result.value;
-        this.logger.warn(
-          `Adapter ${this.adapters[index]?.name} failed: ${String(result.reason)}`,
-        );
+        this.logger.warn(`Adapter ${this.adapters[index]?.name} failed: ${String(result.reason)}`);
         return [];
       });
 

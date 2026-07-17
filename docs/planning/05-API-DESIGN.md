@@ -10,17 +10,17 @@
 
 ## 1. Conventions
 
-| Topic | Rule |
-|-------|------|
-| Versioning | URL `/v1`; breaking changes → `/v2` |
-| Format | JSON; Problem Details (`application/problem+json`) for errors |
-| Auth | `Authorization: Bearer <jwt>` or `X-Api-Key: nx_...` |
-| IDs | UUID strings |
-| Time | ISO-8601 UTC |
-| Pagination | Cursor: `?cursor=&limit=` (default 20, max 100) |
-| Idempotency | `Idempotency-Key` on POST search & billing |
-| Rate limit headers | `X-RateLimit-Limit`, `Remaining`, `Reset` |
-| Request ID | `X-Request-Id` echoed |
+| Topic              | Rule                                                          |
+| ------------------ | ------------------------------------------------------------- |
+| Versioning         | URL `/v1`; breaking changes → `/v2`                           |
+| Format             | JSON; Problem Details (`application/problem+json`) for errors |
+| Auth               | `Authorization: Bearer <jwt>` or `X-Api-Key: nx_...`          |
+| IDs                | UUID strings                                                  |
+| Time               | ISO-8601 UTC                                                  |
+| Pagination         | Cursor: `?cursor=&limit=` (default 20, max 100)               |
+| Idempotency        | `Idempotency-Key` on POST search & billing                    |
+| Rate limit headers | `X-RateLimit-Limit`, `Remaining`, `Reset`                     |
+| Request ID         | `X-Request-Id` echoed                                         |
 
 ---
 
@@ -46,35 +46,35 @@ Common codes: `UNAUTHORIZED`, `FORBIDDEN`, `VALIDATION_ERROR`, `NOT_FOUND`, `RAT
 
 ### 3.1 Health
 
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| GET | `/health` | No | Liveness |
-| GET | `/ready` | No | Readiness (db/redis) |
+| Method | Path      | Auth | Description          |
+| ------ | --------- | ---- | -------------------- |
+| GET    | `/health` | No   | Liveness             |
+| GET    | `/ready`  | No   | Readiness (db/redis) |
 
 ### 3.2 Auth (if self-managed routes; Clerk may own hosted UI)
 
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | `/auth/session` | Exchange provider token → app session |
-| POST | `/auth/logout` | Revoke refresh |
-| GET | `/auth/me` | Current user profile |
-| PATCH | `/auth/me` | Update profile/settings |
-| GET | `/auth/sessions` | List devices |
-| DELETE | `/auth/sessions/:id` | Revoke device |
+| Method | Path                 | Description                           |
+| ------ | -------------------- | ------------------------------------- |
+| POST   | `/auth/session`      | Exchange provider token → app session |
+| POST   | `/auth/logout`       | Revoke refresh                        |
+| GET    | `/auth/me`           | Current user profile                  |
+| PATCH  | `/auth/me`           | Update profile/settings               |
+| GET    | `/auth/sessions`     | List devices                          |
+| DELETE | `/auth/sessions/:id` | Revoke device                         |
 
 ### 3.3 Search
 
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | `/search` | Create search session (async) |
-| GET | `/search/:id` | Get session + answer |
-| GET | `/search/:id/stream` | SSE token stream |
-| POST | `/search/:id/cancel` | Cancel in-flight |
-| GET | `/search` | History (auth) |
-| DELETE | `/search/:id` | Soft-delete from history |
-| POST | `/search/suggest` | Autocomplete / reformulations |
-| POST | `/search/voice` | Upload audio → query text |
-| POST | `/search/image` | Image query bootstrap |
+| Method | Path                 | Description                   |
+| ------ | -------------------- | ----------------------------- |
+| POST   | `/search`            | Create search session (async) |
+| GET    | `/search/:id`        | Get session + answer          |
+| GET    | `/search/:id/stream` | SSE token stream              |
+| POST   | `/search/:id/cancel` | Cancel in-flight              |
+| GET    | `/search`            | History (auth)                |
+| DELETE | `/search/:id`        | Soft-delete from history      |
+| POST   | `/search/suggest`    | Autocomplete / reformulations |
+| POST   | `/search/voice`      | Upload audio → query text     |
+| POST   | `/search/image`      | Image query bootstrap         |
 
 #### POST `/search` body
 
@@ -156,62 +156,62 @@ Common codes: `UNAUTHORIZED`, `FORBIDDEN`, `VALIDATION_ERROR`, `NOT_FOUND`, `RAT
 
 ### 3.4 Assistant
 
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | `/assistant/chat` | Chat grounded on `searchId` |
-| POST | `/assistant/actions` | explain\|summarize\|translate\|rewrite\|compare\|fact_check\|export |
+| Method | Path                 | Description                                                         |
+| ------ | -------------------- | ------------------------------------------------------------------- |
+| POST   | `/assistant/chat`    | Chat grounded on `searchId`                                         |
+| POST   | `/assistant/actions` | explain\|summarize\|translate\|rewrite\|compare\|fact_check\|export |
 
 ### 3.5 Library
 
-| Method | Path | Description |
-|--------|------|-------------|
-| CRUD | `/collections` | Collections |
-| CRUD | `/bookmarks` | Bookmarks |
-| CRUD | `/notes` | Notes |
-| CRUD | `/saved-searches` | Saved searches |
+| Method | Path              | Description    |
+| ------ | ----------------- | -------------- |
+| CRUD   | `/collections`    | Collections    |
+| CRUD   | `/bookmarks`      | Bookmarks      |
+| CRUD   | `/notes`          | Notes          |
+| CRUD   | `/saved-searches` | Saved searches |
 
 ### 3.6 News & Trends
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/news` | `?category=&country=&cursor=` |
-| GET | `/news/breaking` | Breaking set |
-| GET | `/trends` | Trending topics |
+| Method | Path             | Description                   |
+| ------ | ---------------- | ----------------------------- |
+| GET    | `/news`          | `?category=&country=&cursor=` |
+| GET    | `/news/breaking` | Breaking set                  |
+| GET    | `/trends`        | Trending topics               |
 
 ### 3.7 Billing
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/billing/plans` | Public plans |
-| POST | `/billing/checkout` | Stripe checkout session |
-| POST | `/billing/portal` | Customer portal |
-| GET | `/billing/subscription` | Current sub |
-| POST | `/billing/webhooks/stripe` | Stripe webhook |
+| Method | Path                       | Description             |
+| ------ | -------------------------- | ----------------------- |
+| GET    | `/billing/plans`           | Public plans            |
+| POST   | `/billing/checkout`        | Stripe checkout session |
+| POST   | `/billing/portal`          | Customer portal         |
+| GET    | `/billing/subscription`    | Current sub             |
+| POST   | `/billing/webhooks/stripe` | Stripe webhook          |
 
 ### 3.8 Developer
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET/POST | `/api-keys` | List/create |
-| DELETE | `/api-keys/:id` | Revoke |
-| GET | `/usage` | Usage metrics |
+| Method   | Path            | Description   |
+| -------- | --------------- | ------------- |
+| GET/POST | `/api-keys`     | List/create   |
+| DELETE   | `/api-keys/:id` | Revoke        |
+| GET      | `/usage`        | Usage metrics |
 
 ### 3.9 Admin (role-gated)
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET/PATCH | `/admin/users` | User admin |
-| GET | `/admin/analytics/overview` | KPIs |
-| GET | `/admin/audit-logs` | Audit |
-| GET/PATCH | `/admin/moderation` | Cases |
-| GET | `/admin/security/dashboard` | Security metrics |
+| Method    | Path                        | Description      |
+| --------- | --------------------------- | ---------------- |
+| GET/PATCH | `/admin/users`              | User admin       |
+| GET       | `/admin/analytics/overview` | KPIs             |
+| GET       | `/admin/audit-logs`         | Audit            |
+| GET/PATCH | `/admin/moderation`         | Cases            |
+| GET       | `/admin/security/dashboard` | Security metrics |
 
 ### 3.10 Privacy
 
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | `/privacy/export` | Request data export |
-| POST | `/privacy/delete-account` | Schedule deletion |
+| Method | Path                      | Description         |
+| ------ | ------------------------- | ------------------- |
+| POST   | `/privacy/export`         | Request data export |
+| POST   | `/privacy/delete-account` | Schedule deletion   |
 
 ---
 
@@ -264,8 +264,10 @@ Mutations for search remain REST to simplify streaming and idempotency.
 
 ```ts
 const nexiora = new Nexiora({ apiKey: process.env.NEXIORA_API_KEY });
-const run = await nexiora.search.create({ query: "...", mode: "universal" });
-for await (const ev of nexiora.search.stream(run.id)) { /* ... */ }
+const run = await nexiora.search.create({ query: '...', mode: 'universal' });
+for await (const ev of nexiora.search.stream(run.id)) {
+  /* ... */
+}
 ```
 
 ---

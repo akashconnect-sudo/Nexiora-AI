@@ -32,9 +32,7 @@ export function buildMetadata(input: {
       description: input.description,
       site: siteConfig.twitter,
     },
-    robots: input.noIndex
-      ? { index: false, follow: false }
-      : { index: true, follow: true },
+    robots: input.noIndex ? { index: false, follow: false } : { index: true, follow: true },
   };
 }
 

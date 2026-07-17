@@ -20,13 +20,13 @@
 
 ## 2. Problem
 
-| Problem | Who feels it | Cost |
-|---------|--------------|------|
-| Search results are link lists, not answers | Everyone | Time, cognitive load |
-| Chatbots hallucinate without sources | Professionals, students | Wrong decisions |
-| Trustworthy sources are hard to filter | Researchers, journalists | Misinformation risk |
-| Creators need trends + SEO + scripts in many tools | Creators | Tool sprawl |
-| Teams can’t share verified research trails | Knowledge workers | Duplicated work |
+| Problem                                            | Who feels it             | Cost                 |
+| -------------------------------------------------- | ------------------------ | -------------------- |
+| Search results are link lists, not answers         | Everyone                 | Time, cognitive load |
+| Chatbots hallucinate without sources               | Professionals, students  | Wrong decisions      |
+| Trustworthy sources are hard to filter             | Researchers, journalists | Misinformation risk  |
+| Creators need trends + SEO + scripts in many tools | Creators                 | Tool sprawl          |
+| Teams can’t share verified research trails         | Knowledge workers        | Duplicated work      |
 
 ---
 
@@ -125,15 +125,15 @@ Hit rate limit → Pricing → Checkout → API Keys → first successful `/v1/s
 
 ### 6.3 Modes
 
-| Mode | Behavior |
-|------|----------|
-| Universal | Balanced synthesis |
-| Research | Academic/gov priority, citation export |
-| News | Freshness-first + breaking |
-| Code | GitHub/docs/StackOverflow-class sources |
-| Academic | Papers-first |
-| Creator | Append ideation artifacts |
-| Shopping / Travel / Jobs / Maps / People / Companies / Healthcare / Finance | Specialized adapters + disclaimers |
+| Mode                                                                        | Behavior                                |
+| --------------------------------------------------------------------------- | --------------------------------------- |
+| Universal                                                                   | Balanced synthesis                      |
+| Research                                                                    | Academic/gov priority, citation export  |
+| News                                                                        | Freshness-first + breaking              |
+| Code                                                                        | GitHub/docs/StackOverflow-class sources |
+| Academic                                                                    | Papers-first                            |
+| Creator                                                                     | Append ideation artifacts               |
+| Shopping / Travel / Jobs / Maps / People / Companies / Healthcare / Finance | Specialized adapters + disclaimers      |
 
 ### 6.4 Post-Login IA
 
@@ -145,12 +145,12 @@ Users · Roles · Permissions · Analytics · Subscriptions · Payments · API U
 
 ### 6.6 Monetization
 
-| Tier | Search quota | Modes | API | Workspaces |
-|------|--------------|-------|-----|------------|
-| Free | Low daily | Universal, limited News | No | Personal |
-| Pro | High | All consumer modes | Limited | Personal |
-| Business | Team | All + shared collections | Higher | Team |
-| Enterprise | Custom | Custom + SSO/audit | Custom | Org |
+| Tier       | Search quota | Modes                    | API     | Workspaces |
+| ---------- | ------------ | ------------------------ | ------- | ---------- |
+| Free       | Low daily    | Universal, limited News  | No      | Personal   |
+| Pro        | High         | All consumer modes       | Limited | Personal   |
+| Business   | Team         | All + shared collections | Higher  | Team       |
+| Enterprise | Custom       | Custom + SSO/audit       | Custom  | Org        |
 
 Exact numbers finalized in Pricing experiment; engineering must meter usage flexibly.
 
@@ -158,40 +158,40 @@ Exact numbers finalized in Pricing experiment; engineering must meter usage flex
 
 ## 7. Success Metrics
 
-| Metric | Definition | Target (6 mo post-MVP) |
-|--------|------------|-------------------------|
-| Answer citation rate | % answers with ≥1 citation | ≥ 95% |
-| User trust CSAT | In-product “Was this trustworthy?” | ≥ 4.3/5 |
-| p95 TTFB stream | First token | ≤ 2.5s |
-| Activation | Signup → 3 searches in 24h | ≥ 40% |
-| Free→Pro conversion | 30-day | ≥ 4% |
-| Hallucination flag rate | User report / auto fact-check fail | Decreasing QoQ |
-| API error rate | 5xx | < 0.1% |
+| Metric                  | Definition                         | Target (6 mo post-MVP) |
+| ----------------------- | ---------------------------------- | ---------------------- |
+| Answer citation rate    | % answers with ≥1 citation         | ≥ 95%                  |
+| User trust CSAT         | In-product “Was this trustworthy?” | ≥ 4.3/5                |
+| p95 TTFB stream         | First token                        | ≤ 2.5s                 |
+| Activation              | Signup → 3 searches in 24h         | ≥ 40%                  |
+| Free→Pro conversion     | 30-day                             | ≥ 4%                   |
+| Hallucination flag rate | User report / auto fact-check fail | Decreasing QoQ         |
+| API error rate          | 5xx                                | < 0.1%                 |
 
 ---
 
 ## 8. Competitive Differentiation
 
-| Capability | Google | Perplexity | ChatGPT | Nova Search |
-|------------|--------|------------|---------|-------------|
-| Citation-first UI | Partial | Strong | Partial | Strong + trust scores |
-| Creator ideation layer | Weak | Weak | Chat-only | First-class mode |
-| Research citation export | Weak | Partial | Weak | BibTeX/APA/MLA |
-| Multi-model routing | N/A | Limited | Single vendor | Pluggable router |
-| Cross-platform native clients | Strong | Web-first | Strong | Web+PWA+Electron+Mobile |
-| API as product | Separate | Yes | Yes | Yes, metered |
+| Capability                    | Google   | Perplexity | ChatGPT       | Nova Search             |
+| ----------------------------- | -------- | ---------- | ------------- | ----------------------- |
+| Citation-first UI             | Partial  | Strong     | Partial       | Strong + trust scores   |
+| Creator ideation layer        | Weak     | Weak       | Chat-only     | First-class mode        |
+| Research citation export      | Weak     | Partial    | Weak          | BibTeX/APA/MLA          |
+| Multi-model routing           | N/A      | Limited    | Single vendor | Pluggable router        |
+| Cross-platform native clients | Strong   | Web-first  | Strong        | Web+PWA+Electron+Mobile |
+| API as product                | Separate | Yes        | Yes           | Yes, metered            |
 
 ---
 
 ## 9. Risks & Mitigations
 
-| Risk | Mitigation |
-|------|------------|
-| LLM / search API cost explosion | Caching, model routing, query complexity classifier, hard budgets |
-| Hallucinations | Mandatory citations, fact-check agent, abstain when low confidence |
-| Provider ToS / scraping bans | Licensed APIs, respect robots, no ToS-violating scrapers in prod |
-| Abuse (bot searches) | Captcha, device fingerprint heuristics, rate limits, anomaly detection |
-| Brand confusion (Nexiora vs Nova) | Clear hierarchy in UI; approve branding in INDEX |
+| Risk                              | Mitigation                                                             |
+| --------------------------------- | ---------------------------------------------------------------------- |
+| LLM / search API cost explosion   | Caching, model routing, query complexity classifier, hard budgets      |
+| Hallucinations                    | Mandatory citations, fact-check agent, abstain when low confidence     |
+| Provider ToS / scraping bans      | Licensed APIs, respect robots, no ToS-violating scrapers in prod       |
+| Abuse (bot searches)              | Captcha, device fingerprint heuristics, rate limits, anomaly detection |
+| Brand confusion (Nexiora vs Nova) | Clear hierarchy in UI; approve branding in INDEX                       |
 
 ---
 

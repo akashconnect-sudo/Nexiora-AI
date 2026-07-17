@@ -23,40 +23,76 @@ function NavIcon({ name }: { name: (typeof NAV)[number]['icon'] }) {
   switch (name) {
     case 'home':
       return (
-        <svg className={common} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
+        <svg
+          className={common}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.75"
+        >
           <path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9.5Z" />
         </svg>
       );
     case 'creator':
       return (
-        <svg className={common} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
+        <svg
+          className={common}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.75"
+        >
           <path d="M8 5.5v13M16 5.5v13M5 9.5h14M5 14.5h14" />
           <rect x="4" y="4" width="16" height="16" rx="2.5" />
         </svg>
       );
     case 'search':
       return (
-        <svg className={common} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
+        <svg
+          className={common}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.75"
+        >
           <circle cx="11" cy="11" r="6.5" />
           <path d="m16 16 4 4" />
         </svg>
       );
     case 'news':
       return (
-        <svg className={common} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
+        <svg
+          className={common}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.75"
+        >
           <path d="M5 5h11a2 2 0 0 1 2 2v12H7a2 2 0 0 1-2-2V5Z" />
           <path d="M7 9h9M7 13h6M18 7h1a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-1" />
         </svg>
       );
     case 'library':
       return (
-        <svg className={common} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
+        <svg
+          className={common}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.75"
+        >
           <path d="M5 4h4v16H5zM10 4h4v16h-4zM16 6.5 20 5v14l-4 1.5V6.5Z" />
         </svg>
       );
     case 'settings':
       return (
-        <svg className={common} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
+        <svg
+          className={common}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.75"
+        >
           <circle cx="12" cy="12" r="3" />
           <path d="M12 3.5v2.2M12 18.3v2.2M4.9 7.1l1.6 1.5M17.5 15.4l1.6 1.5M3.5 12h2.2M18.3 12h2.2M4.9 16.9l1.6-1.5M17.5 8.6l1.6-1.5" />
         </svg>
@@ -167,7 +203,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {/* Desktop sidebar */}
       <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-nx-border bg-nx-elevated/80 lg:flex">
         <div className="flex h-14 items-center gap-2 border-b border-nx-border px-4">
-          <Link href="/dashboard" className="font-display text-base font-semibold tracking-tight text-nx-ink">
+          <Link
+            href="/dashboard"
+            className="font-display text-base font-semibold tracking-tight text-nx-ink"
+          >
             {siteConfig.name}
           </Link>
         </div>
@@ -226,7 +265,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       >
         <div className="flex h-14 items-center justify-between border-b border-nx-border px-4">
           <span className="font-display font-semibold">{siteConfig.name}</span>
-          <button type="button" className="text-sm text-nx-muted" onClick={() => setMobileOpen(false)}>
+          <button
+            type="button"
+            className="text-sm text-nx-muted"
+            onClick={() => setMobileOpen(false)}
+          >
             Close
           </button>
         </div>
@@ -262,10 +305,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </button>
             <div className="min-w-0">
               <p className="truncate text-sm font-medium text-nx-ink">
-                {NAV.find((n) => pathname === n.href || (n.href !== '/dashboard' && pathname.startsWith(n.href)))
-                  ?.label ?? 'Nova Search'}
+                {NAV.find(
+                  (n) =>
+                    pathname === n.href || (n.href !== '/dashboard' && pathname.startsWith(n.href)),
+                )?.label ?? 'Nova Search'}
               </p>
-              <p className="hidden text-xs text-nx-muted sm:block">Cited answers · live news · your library</p>
+              <p className="hidden text-xs text-nx-muted sm:block">
+                Cited answers · live news · your library
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-2">

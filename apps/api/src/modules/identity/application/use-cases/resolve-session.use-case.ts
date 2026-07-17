@@ -1,9 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { AuthPrincipal } from '../ports/identity-provider.port';
-import {
-  IDENTITY_PROVIDER_PORT,
-  type IdentityProviderPort,
-} from '../ports/identity-provider.port';
+import { IDENTITY_PROVIDER_PORT, type IdentityProviderPort } from '../ports/identity-provider.port';
 import { UserDirectoryPort, USER_DIRECTORY_PORT } from '../ports/user-directory.port';
 
 export interface ResolveSessionResult {

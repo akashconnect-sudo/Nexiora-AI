@@ -78,9 +78,7 @@ export const PatchCreatorPermissionsSchema = z.object({
 
 export const GenerateIdeasRequestSchema = z.object({
   topic: z.string().min(2).max(300),
-  format: z
-    .enum(['longform', 'shorts', 'podcast', 'community', 'multi'])
-    .default('multi'),
+  format: z.enum(['longform', 'shorts', 'podcast', 'community', 'multi']).default('multi'),
 });
 
 export const EnrichCreatorSearchSchema = z.object({

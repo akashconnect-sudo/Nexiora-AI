@@ -42,19 +42,29 @@ export function AboutExperience() {
             {aboutCopy.lead}
           </p>
           <div className="about-hero-in about-delay-3 mt-9 flex flex-wrap gap-3">
-            <Link href="/search"><Button>Start searching</Button></Link>
-            <Link href="/pricing"><Button variant="secondary">Explore plans</Button></Link>
+            <Link href="/search">
+              <Button>Start searching</Button>
+            </Link>
+            <Link href="/pricing">
+              <Button variant="secondary">Explore plans</Button>
+            </Link>
           </div>
         </div>
 
-        <div className="about-floating-card right-[6%] top-[22%] hidden lg:block" aria-hidden="true">
+        <div
+          className="about-floating-card right-[6%] top-[22%] hidden lg:block"
+          aria-hidden="true"
+        >
           <span className="text-xs text-nx-accent">SOURCE 04</span>
           <p className="mt-2 text-sm font-medium text-nx-ink">Evidence attached</p>
           <div className="mt-3 h-1.5 w-32 overflow-hidden rounded-full bg-nx-border">
             <div className="about-score h-full w-[88%] bg-nx-accent" />
           </div>
         </div>
-        <div className="about-floating-card bottom-[18%] right-[18%] hidden lg:block" aria-hidden="true">
+        <div
+          className="about-floating-card bottom-[18%] right-[18%] hidden lg:block"
+          aria-hidden="true"
+        >
           <span className="text-xs text-nx-muted">CONFIDENCE</span>
           <p className="mt-1 font-display text-3xl text-nx-ink">92%</p>
         </div>
@@ -63,8 +73,12 @@ export function AboutExperience() {
       <div className="border-y border-nx-border bg-nx-elevated/60 py-4" aria-hidden="true">
         <div className="about-marquee flex w-max gap-12">
           {movingSignals.map((signal, index) => (
-            <span key={`${signal}-${index}`} className="flex items-center gap-12 text-sm font-semibold uppercase tracking-[0.18em] text-nx-muted">
-              {signal}<i className="h-1.5 w-1.5 rounded-full bg-nx-accent" />
+            <span
+              key={`${signal}-${index}`}
+              className="flex items-center gap-12 text-sm font-semibold uppercase tracking-[0.18em] text-nx-muted"
+            >
+              {signal}
+              <i className="h-1.5 w-1.5 rounded-full bg-nx-accent" />
             </span>
           ))}
         </div>
@@ -72,10 +86,15 @@ export function AboutExperience() {
 
       <section className="mx-auto max-w-6xl px-4 py-28 sm:px-8">
         <div data-about-reveal className="about-reveal grid gap-10 lg:grid-cols-[0.7fr_1.3fr]">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-nx-accent">Why we exist</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-nx-accent">
+            Why we exist
+          </p>
           <div className="space-y-6">
             {aboutCopy.body.map((paragraph) => (
-              <p key={paragraph.slice(0, 32)} className="font-display text-2xl leading-relaxed text-nx-ink sm:text-3xl">
+              <p
+                key={paragraph.slice(0, 32)}
+                className="font-display text-2xl leading-relaxed text-nx-ink sm:text-3xl"
+              >
                 {paragraph}
               </p>
             ))}
@@ -86,7 +105,9 @@ export function AboutExperience() {
       <section className="border-y border-nx-border bg-nx-elevated/35">
         <div className="mx-auto max-w-6xl px-4 py-28 sm:px-8">
           <div data-about-reveal className="about-reveal">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-nx-accent">Our principles</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-nx-accent">
+              Our principles
+            </p>
             <h2 className="mt-4 max-w-3xl font-display text-4xl font-semibold text-nx-ink sm:text-5xl">
               Premium research starts with honest product choices.
             </h2>
@@ -100,7 +121,9 @@ export function AboutExperience() {
                 style={{ transitionDelay: `${index * 80}ms` }}
               >
                 <span className="font-mono text-xs text-nx-accent">{principle.number}</span>
-                <h3 className="mt-12 font-display text-2xl font-semibold text-nx-ink">{principle.title}</h3>
+                <h3 className="mt-12 font-display text-2xl font-semibold text-nx-ink">
+                  {principle.title}
+                </h3>
                 <p className="mt-3 text-sm leading-6 text-nx-muted">{principle.body}</p>
               </article>
             ))}
@@ -109,17 +132,24 @@ export function AboutExperience() {
       </section>
 
       <section className="mx-auto max-w-6xl px-4 py-32 text-center sm:px-8">
-        <div data-about-reveal className="about-reveal relative overflow-hidden rounded-3xl border border-nx-accent/30 bg-nx-elevated px-6 py-20">
+        <div
+          data-about-reveal
+          className="about-reveal relative overflow-hidden rounded-3xl border border-nx-accent/30 bg-nx-elevated px-6 py-20"
+        >
           <div className="absolute inset-0 nx-atmosphere opacity-40" aria-hidden="true" />
           <div className="relative">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-nx-accent">The next question</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-nx-accent">
+              The next question
+            </p>
             <h2 className="mx-auto mt-5 max-w-3xl font-display text-4xl font-semibold text-nx-ink sm:text-6xl">
               Ask boldly. Verify everything.
             </h2>
             <p className="mx-auto mt-5 max-w-xl text-base leading-7 text-nx-muted">
               Nova brings the answer and its evidence into one focused research surface.
             </p>
-            <Link href="/search" className="mt-8 inline-block"><Button>Try Nova Search</Button></Link>
+            <Link href="/search" className="mt-8 inline-block">
+              <Button>Try Nova Search</Button>
+            </Link>
           </div>
         </div>
       </section>

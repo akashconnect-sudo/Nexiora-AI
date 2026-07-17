@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest';
 import type { RankedDocument } from '@nexiora/search-core';
 import { ExtractiveGenerationAdapter } from './extractive-generation.adapter';
 
-function doc(partial: Partial<RankedDocument> & Pick<RankedDocument, 'id' | 'url'>): RankedDocument {
+function doc(
+  partial: Partial<RankedDocument> & Pick<RankedDocument, 'id' | 'url'>,
+): RankedDocument {
   return {
     title: 'Example',
     canonicalUrl: partial.url,

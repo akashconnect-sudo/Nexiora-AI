@@ -1,8 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  computeOpportunityScores,
-  type OpportunityInputs,
-} from './opportunity-score';
+import { computeOpportunityScores, type OpportunityInputs } from './opportunity-score';
 
 describe('computeOpportunityScores', () => {
   it('raises opportunity when demand is high and competition is low', () => {

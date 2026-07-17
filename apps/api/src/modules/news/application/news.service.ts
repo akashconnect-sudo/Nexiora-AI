@@ -180,10 +180,7 @@ export class NewsService {
   }
 }
 
-function parseRssItems(
-  xml: string,
-  feed: { category: string; source: string },
-): NewsListItem[] {
+function parseRssItems(xml: string, feed: { category: string; source: string }): NewsListItem[] {
   const items: NewsListItem[] = [];
   const blocks = xml.split(/<item[\s>]/i).slice(1);
   for (const block of blocks.slice(0, 12)) {
@@ -201,7 +198,11 @@ function parseRssItems(
       category: feed.category,
       publishedAt: Number.isNaN(+published) ? new Date().toISOString() : published.toISOString(),
       summary: description
-        ? description.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim().slice(0, 280)
+        ? description
+            .replace(/<[^>]+>/g, '')
+            .replace(/\s+/g, ' ')
+            .trim()
+            .slice(0, 280)
         : null,
     });
   }
@@ -209,7 +210,9 @@ function parseRssItems(
 }
 
 function matchTag(block: string, tag: string): string | null {
-  const cdata = block.match(new RegExp(`<${tag}[^>]*><!\\[CDATA\\[([\\s\\S]*?)\\]\\]><\\/${tag}>`, 'i'));
+  const cdata = block.match(
+    new RegExp(`<${tag}[^>]*><!\\[CDATA\\[([\\s\\S]*?)\\]\\]><\\/${tag}>`, 'i'),
+  );
   if (cdata?.[1]) return cdata[1].trim();
   const plain = block.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, 'i'));
   return plain?.[1]?.trim() ?? null;

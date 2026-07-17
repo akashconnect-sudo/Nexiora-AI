@@ -35,16 +35,16 @@ Nexiora AI is a modern AI Knowledge Search Platform designed to provide fast, in
 
 # Tech Stack
 
-| Layer | Technology |
-|--------|------------|
-| Monorepo | Turborepo + pnpm |
-| Frontend | Next.js 15, React 19, Tailwind CSS |
-| Backend | NestJS |
-| Database | PostgreSQL + Prisma |
-| Cache | Redis |
-| Search | OpenSearch + Qdrant |
-| Authentication | Clerk |
-| Workers | BullMQ |
+| Layer          | Technology                         |
+| -------------- | ---------------------------------- |
+| Monorepo       | Turborepo + pnpm                   |
+| Frontend       | Next.js 15, React 19, Tailwind CSS |
+| Backend        | NestJS                             |
+| Database       | PostgreSQL + Prisma                |
+| Cache          | Redis                              |
+| Search         | OpenSearch + Qdrant                |
+| Authentication | Clerk                              |
+| Workers        | BullMQ                             |
 
 ---
 
@@ -66,12 +66,12 @@ packages/
 
 # Development Status
 
-| Phase | Status |
-|--------|--------|
-| Planning | ✅ Approved |
-| Foundation | ✅ Complete |
-| Core Search MVP | ✅ Complete |
-| Trust & Modes | 🚧 In Progress |
+| Phase           | Status         |
+| --------------- | -------------- |
+| Planning        | ✅ Approved    |
+| Foundation      | ✅ Complete    |
+| Core Search MVP | ✅ Complete    |
+| Trust & Modes   | 🚧 In Progress |
 
 ---
 

@@ -116,7 +116,9 @@ export function CreatorIdeasStudio() {
       {pack ? (
         <div className="mt-8 space-y-4">
           <div className="creator-glass rounded-2xl border border-nx-border/70 p-5 sm:p-6">
-            <p className="text-xs font-semibold uppercase tracking-wide text-nx-accent">Suggested pack</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-nx-accent">
+              Suggested pack
+            </p>
             <h2 className="mt-1 font-display text-xl font-semibold text-nx-ink">{pack.topic}</h2>
             <p className="mt-3 text-sm leading-relaxed text-nx-ink">{pack.why}</p>
             <p className="mt-2 text-xs leading-relaxed text-nx-muted">{pack.disclaimer}</p>

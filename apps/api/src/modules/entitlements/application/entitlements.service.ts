@@ -8,10 +8,7 @@ import {
   resolveAnonymousEntitlements,
   type EntitlementContext,
 } from '../domain/entitlements';
-import {
-  RATE_LIMITER_PORT,
-  type RateLimiterPort,
-} from './ports/rate-limiter.port';
+import { RATE_LIMITER_PORT, type RateLimiterPort } from './ports/rate-limiter.port';
 import { AppConfigService } from '../../../bootstrap/app-config.service';
 
 @Injectable()
@@ -123,7 +120,11 @@ export class EntitlementsService {
           ERROR_CODES.PAYMENT_REQUIRED,
           'Complete the ₹2 Free activation payment to use Nova Search.',
           402,
-          { paymentRequired: true, activationFeeInr: 2, suggestedPlans: ['free', 'pro', 'business'] },
+          {
+            paymentRequired: true,
+            activationFeeInr: 2,
+            suggestedPlans: ['free', 'pro', 'business'],
+          },
         );
       }
       const sub = await this.prisma.subscription.findUnique({ where: { userId } });

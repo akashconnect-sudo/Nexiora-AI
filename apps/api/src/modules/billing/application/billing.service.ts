@@ -103,7 +103,11 @@ export class BillingService implements OnModuleInit {
           ? this.config.stripePricePro
           : this.config.stripePriceBusiness;
     if (!priceId) {
-      throw new DomainError(ERROR_CODES.VALIDATION_ERROR, `No Stripe price for plan ${planId}`, 400);
+      throw new DomainError(
+        ERROR_CODES.VALIDATION_ERROR,
+        `No Stripe price for plan ${planId}`,
+        400,
+      );
     }
 
     const customerId = await this.ensureStripeCustomer(userId);
@@ -135,7 +139,11 @@ export class BillingService implements OnModuleInit {
     if (!response.ok) {
       const text = await response.text();
       this.logger.error(`Stripe checkout failed: ${text}`);
-      throw new DomainError(ERROR_CODES.PROVIDER_UNAVAILABLE, 'Unable to create checkout session', 502);
+      throw new DomainError(
+        ERROR_CODES.PROVIDER_UNAVAILABLE,
+        'Unable to create checkout session',
+        502,
+      );
     }
 
     const session = (await response.json()) as { id: string; url: string };
@@ -227,7 +235,11 @@ export class BillingService implements OnModuleInit {
 
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user?.email) {
-      throw new DomainError(ERROR_CODES.VALIDATION_ERROR, 'User email is required for checkout', 400);
+      throw new DomainError(
+        ERROR_CODES.VALIDATION_ERROR,
+        'User email is required for checkout',
+        400,
+      );
     }
 
     const response = await this.stripeRequest(
@@ -241,7 +253,11 @@ export class BillingService implements OnModuleInit {
     if (!response.ok) {
       const text = await response.text();
       this.logger.error(`Stripe customer create failed: ${text}`);
-      throw new DomainError(ERROR_CODES.PROVIDER_UNAVAILABLE, 'Unable to create billing customer', 502);
+      throw new DomainError(
+        ERROR_CODES.PROVIDER_UNAVAILABLE,
+        'Unable to create billing customer',
+        502,
+      );
     }
     const customer = (await response.json()) as { id: string };
 
