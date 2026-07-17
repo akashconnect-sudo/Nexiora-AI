@@ -181,7 +181,7 @@ export class BillingService implements OnModuleInit {
       createdAt: new Date(invoice.created * 1000).toISOString(),
       hostedUrl: invoice.hosted_invoice_url,
       pdfUrl: invoice.invoice_pdf,
-      kind: 'invoice' as const,
+      kind: 'invoice' as 'invoice' | 'receipt',
     }));
 
     // Fallback/supplement: card receipts for any paid charge not yet represented as invoice.
