@@ -1,5 +1,7 @@
 import { EventEmitter } from 'node:events';
-import { createRequest, createResponse } from 'node-mocks-http';
+import { Readable } from 'node:stream';
+import type { IncomingMessage } from 'node:http';
+import { createResponse } from 'node-mocks-http';
 // External CJS package — must stay in serverExternalPackages (not webpack-bundled).
 import { loadNexioraExpress } from '@nexiora/nest-runtime';
 
@@ -32,34 +34,51 @@ async function getExpress(): Promise<ExpressApp> {
   return bootstrapPromise;
 }
 
+/**
+ * Build a real Readable IncomingMessage so Express body-parser gets data + end.
+ * node-mocks-http createRequest() leaves POST bodies unread → handlers hang forever.
+ */
+function toNodeRequest(
+  request: Request,
+  pathname: string,
+  search: string,
+  body: Buffer,
+): IncomingMessage {
+  const headers: Record<string, string | string[] | undefined> = {
+    'content-length': String(body.length),
+  };
+  request.headers.forEach((value, key) => {
+    headers[key] = value;
+  });
+
+  const readable = Readable.from(body.length > 0 ? [body] : []);
+  const req = readable as IncomingMessage;
+  req.method = request.method;
+  req.url = `${pathname}${search}`;
+  req.headers = headers;
+  // Nest rawBody / stripe webhook support
+  (req as IncomingMessage & { rawBody?: Buffer }).rawBody = body;
+  return req;
+}
+
 async function proxy(request: Request): Promise<Response> {
   try {
     const express = await getExpress();
     const url = new URL(request.url);
     const pathname = url.pathname.startsWith('/api') ? url.pathname.slice(4) || '/' : url.pathname;
 
-    const headers: Record<string, string> = {};
-    request.headers.forEach((value, key) => {
-      headers[key] = value;
-    });
-
     const bodyBuffer =
       request.method === 'GET' || request.method === 'HEAD'
-        ? undefined
+        ? Buffer.alloc(0)
         : Buffer.from(await request.arrayBuffer());
 
-    const req = createRequest({
-      method: request.method as 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'OPTIONS' | 'HEAD',
-      url: `${pathname}${url.search}`,
-      headers,
-      body: bodyBuffer,
-    });
-
+    const req = toNodeRequest(request, pathname, url.search, bodyBuffer);
     const res = createResponse({ eventEmitter: EventEmitter });
 
     await new Promise<void>((resolve, reject) => {
-      res.on('end', () => resolve());
-      res.on('finish', () => resolve());
+      const done = () => resolve();
+      res.on('end', done);
+      res.on('finish', done);
       res.on('error', reject);
       express(req, res, (error?: unknown) => {
         if (error) reject(error);

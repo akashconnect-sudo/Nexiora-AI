@@ -34,18 +34,22 @@ export class OtpMailerAdapter {
       return;
     }
 
-    if (this.config.smtpConfigured) {
-      // Vercel serverless blocks outbound SMTP (Gmail 465/587 often hangs until timeout).
-      if (process.env.VERCEL) {
-        throw new Error(
-          'SMTP email is not available on Vercel. Set RESEND_API_KEY for production login codes.',
-        );
-      }
+    if (this.config.smtpConfigured && !this.isServerlessRuntime()) {
       await this.sendWithSmtp(email, subject, text, html);
       return;
     }
 
+    if (this.config.smtpConfigured && this.isServerlessRuntime()) {
+      throw new Error(
+        'SMTP email is not available on Vercel. Set RESEND_API_KEY for production login codes.',
+      );
+    }
+
     throw new Error('No email provider configured');
+  }
+
+  private isServerlessRuntime(): boolean {
+    return Boolean(process.env.VERCEL) || Boolean(process.env.AWS_LAMBDA_FUNCTION_NAME);
   }
 
   private async sendWithResend(
@@ -62,6 +66,7 @@ export class OtpMailerAdapter {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ from, to: [email], subject, text, html }),
+      signal: AbortSignal.timeout(12_000),
     });
 
     if (!response.ok) {

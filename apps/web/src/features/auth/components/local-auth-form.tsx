@@ -63,7 +63,12 @@ export function LocalAuthForm({ mode }: LocalAuthFormProps) {
       setStatusMessage(typeof body.message === 'string' ? body.message : null);
       setStep('code');
     } catch (err) {
-      setError((err as Error).message);
+      const message = (err as Error).message;
+      setError(
+        message === 'signal timed out' || message.includes('TimeoutError')
+          ? 'Server took too long. On Vercel set RESEND_API_KEY and redeploy; locally ensure the API is running.'
+          : message,
+      );
     } finally {
       setBusy(false);
     }
