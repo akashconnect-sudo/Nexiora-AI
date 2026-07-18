@@ -1,8 +1,4 @@
 import type { NextConfig } from 'next';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-
-const configDir = path.dirname(fileURLToPath(import.meta.url));
 
 const nestProxy =
   process.env.NODE_ENV === 'development'
@@ -19,36 +15,12 @@ const nestProxy =
         { source: '/openapi.json', destination: '/api/openapi.json' },
       ];
 
-const nestTraceGlobs = [
-  './nest-dist/**/*',
-  './nest-runtime/**/*',
-  './nest-loader.cjs',
-  '../api/dist/**/*',
-  './node_modules/@nexiora/nest-runtime/**/*',
-  './node_modules/@nestjs/**/*',
-  './node_modules/@prisma/**/*',
-  './node_modules/.prisma/**/*',
-  './node_modules/@nexiora/**/*',
-  './node_modules/express/**/*',
-  './node_modules/ioredis/**/*',
-  './node_modules/nodemailer/**/*',
-  './node_modules/nestjs-pino/**/*',
-  './node_modules/pino/**/*',
-  './node_modules/pino-http/**/*',
-  './node_modules/jose/**/*',
-  './node_modules/zod/**/*',
-  './node_modules/reflect-metadata/**/*',
-  './node_modules/rxjs/**/*',
-  './node_modules/dotenv/**/*',
-  './node_modules/@clerk/backend/**/*',
-];
+const nestTraceGlobs = ['./nest-dist/**/*', './nest-runtime/**/*'];
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   transpilePackages: ['@nexiora/ui', '@nexiora/shared'],
   poweredByHeader: false,
-  // Monorepo root so Nest + Prisma deps outside apps/web can be traced.
-  outputFileTracingRoot: path.join(configDir, '../..'),
   serverExternalPackages: [
     '@nexiora/nest-runtime',
     '@nestjs/common',
@@ -70,6 +42,28 @@ const nextConfig: NextConfig = {
     'zod',
     'dotenv',
   ],
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      const previous = config.externals;
+      config.externals = [
+        ...(Array.isArray(previous) ? previous : previous ? [previous] : []),
+        (
+          { request }: { request?: string },
+          callback: (err?: Error | null, result?: string) => void,
+        ) => {
+          if (
+            request === 'node:module' ||
+            request === 'module' ||
+            request === '@nexiora/nest-runtime'
+          ) {
+            return callback(null, `commonjs ${request}`);
+          }
+          callback();
+        },
+      ];
+    }
+    return config;
+  },
   async rewrites() {
     return nestProxy;
   },

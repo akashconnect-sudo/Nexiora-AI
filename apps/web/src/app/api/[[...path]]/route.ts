@@ -94,15 +94,7 @@ async function proxy(request: Request): Promise<Response> {
     const message = error instanceof Error ? error.message : String(error);
     const stack = error instanceof Error ? error.stack : undefined;
     console.error('[nexiora-api]', message, stack);
-    return Response.json(
-      {
-        error: 'api_bootstrap_failed',
-        message,
-        stack,
-        cwd: process.cwd(),
-      },
-      { status: 500 },
-    );
+    return Response.json({ error: 'api_bootstrap_failed', message }, { status: 500 });
   }
 }
 
