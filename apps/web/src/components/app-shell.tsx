@@ -7,8 +7,8 @@ import { useTheme } from 'next-themes';
 import { Button } from '@nexiora/ui';
 import { siteConfig } from '@/content/site';
 import { clearSession, getSessionUser, authHeaders, type SessionUser } from '@/lib/session';
+import { apiUrl } from '@/lib/api-url';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
 const NAV = [
   { href: '/dashboard', label: 'Home', icon: 'home' },
   { href: '/creator', label: 'Creator', icon: 'creator' },
@@ -138,7 +138,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     let cancelled = false;
     void (async () => {
       try {
-        const response = await fetch(`${API_URL}/v1/billing/subscription`, {
+        const response = await fetch(apiUrl('/v1/billing/subscription'), {
           headers: authHeaders(),
         });
         if (!response.ok || cancelled) return;

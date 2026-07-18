@@ -1,84 +1,54 @@
-# Deploy Nexiora to Vercel
+# Deploy Nexiora to Vercel (one project)
 
-## What goes where
+## Same project: Web + API together
 
-| App                  | Vercel project (example) | Root Directory | Notes                                      |
-| -------------------- | ------------------------ | -------------- | ------------------------------------------ |
-| **Web** (`apps/web`) | `nexiora-ai`             | `apps/web`     | Next.js marketing + app UI                 |
-| **API** (`apps/api`) | `nexiora-api`            | `apps/api`     | NestJS serverless handler (`api/index.js`) |
+Use **one** Vercel project (e.g. `nexiora-ai`) with:
 
-Do **not** point `NEXT_PUBLIC_API_URL` at the web project URL. Web returns HTML; login needs JSON from `/v1/...`.
+- **Root Directory:** `apps/web`
+- NestJS is built and mounted as `/api/[...path]` with rewrites for `/v1/*`
 
----
+Login calls `/v1/auth/...` on the **same domain** — no separate API project required.
 
-## 1) Deploy API (new Vercel project)
+### Env (this project)
 
-1. [Vercel New Project](https://vercel.com/new) → import **akashconnect-sudo/Nexiora-AI**.
-2. Project name: e.g. `nexiora-api` (not the same as the web project).
-3. **Root Directory:** `apps/api` (Edit → select folder).
-4. Framework: **Other**.
-5. Install / Build are in `apps/api/vercel.json` — leave them.
-6. Add **Environment Variables** (Production + Preview):
+API / DB / Stripe / SMTP (server):
 
 ```text
-NODE_ENV=production
-DATABASE_URL=postgresql://...supabase...?sslmode=require
-CORS_ORIGINS=https://YOUR-WEB.vercel.app
-PUBLIC_API_URL=https://YOUR-API.vercel.app
-PUBLIC_WEB_URL=https://YOUR-WEB.vercel.app
-IP_HASH_SECRET=change-me-to-a-long-random-string
-AUTH_JWT_SECRET=change-me-to-another-long-secret
-
-STRIPE_SECRET_KEY=sk_test_...
-STRIPE_WEBHOOK_SECRET=whsec_...
-STRIPE_PRICE_FREE=price_...
-STRIPE_PRICE_PRO=price_...
-STRIPE_PRICE_BUSINESS=price_...
-
+DATABASE_URL=...
+CORS_ORIGINS=https://nexiora-ai-api.vercel.app
+PUBLIC_WEB_URL=https://nexiora-ai-api.vercel.app
+PUBLIC_API_URL=https://nexiora-ai-api.vercel.app
+IP_HASH_SECRET=...
+AUTH_JWT_SECRET=...
+STRIPE_SECRET_KEY=...
+STRIPE_WEBHOOK_SECRET=...
+STRIPE_PRICE_FREE=...
+STRIPE_PRICE_PRO=...
+STRIPE_PRICE_BUSINESS=...
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=465
 SMTP_SECURE=true
-SMTP_USER=your@gmail.com
-SMTP_PASS=your-gmail-app-password
-EMAIL_FROM=Nexiora AI <your@gmail.com>
-
-REDIS_URL=redis://localhost:6379
+SMTP_USER=...
+SMTP_PASS=...
+EMAIL_FROM=Nexiora AI <...>
 ```
 
-`REDIS_URL` can stay as localhost for now (API falls back when Redis is down). For production rate limits later, add Upstash Redis.
-
-7. Deploy. Open `https://YOUR-API.vercel.app/` — should return JSON like `{ "name": "Nexiora AI API", "status": "ok" }`.
-8. Also check `https://YOUR-API.vercel.app/health`.
-
----
-
-## 2) Point Web at the API
-
-In the **web** Vercel project (`nexiora-ai` / whatever serves the UI):
+Web browser URL:
 
 ```text
-NEXT_PUBLIC_API_URL=https://YOUR-API.vercel.app
-NEXT_PUBLIC_WEB_URL=https://YOUR-WEB.vercel.app
+NEXT_PUBLIC_API_URL=
 ```
 
-No trailing slash. Then **Redeploy** the web project (env changes apply only after rebuild).
+Leave **empty**, or delete the variable. If you set it to the same site URL, the app still uses same-origin automatically.
 
----
+Do **not** set `NEXT_PUBLIC_API_URL=http://localhost:3001` on Vercel.
 
-## 3) Stripe webhook (after API is live)
+### After env / code change
 
-Stripe Dashboard → Developers → Webhooks → endpoint:
+Redeploy **this same project** once (Deployments → Redeploy / push to `main`). A brand-new Vercel project is not required.
 
-`https://YOUR-API.vercel.app/v1/billing/webhook`
+### Verify
 
-Copy signing secret into `STRIPE_WEBHOOK_SECRET` and redeploy API.
-
----
-
-## Local vs Production
-
-| Place                  | `NEXT_PUBLIC_API_URL`                |
-| ---------------------- | ------------------------------------ |
-| Local `.env`           | `http://localhost:3001`              |
-| Vercel **web** project | `https://YOUR-API.vercel.app`        |
-| Never                  | Web site URL / `localhost` on Vercel |
+1. `https://YOUR-DOMAIN/health` → JSON (not HTML)
+2. `https://YOUR-DOMAIN/v1/billing/plans` → JSON
+3. Login → OTP email / code

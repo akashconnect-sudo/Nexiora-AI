@@ -7,8 +7,8 @@ import { useTheme } from 'next-themes';
 import { Button } from '@nexiora/ui';
 import { authHeaders, clearSession, getSessionUser, type SessionUser } from '@/lib/session';
 import { DEFAULT_PREFS, loadPrefs, savePrefs, type UserPrefs } from '@/lib/prefs';
+import { apiUrl } from '@/lib/api-url';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
 const SECTIONS = [
   'account',
   'security',
@@ -81,8 +81,8 @@ export function SettingsExperience({ initialSection = 'account' }: { initialSect
   async function loadBilling() {
     const headers = authHeaders();
     const [subResponse, invoiceResponse] = await Promise.all([
-      fetch(`${API_URL}/v1/billing/subscription`, { headers }),
-      fetch(`${API_URL}/v1/billing/invoices`, { headers }),
+      fetch(apiUrl('/v1/billing/subscription'), { headers }),
+      fetch(apiUrl('/v1/billing/invoices'), { headers }),
     ]);
     if (subResponse.ok) setSubscription((await subResponse.json()) as Subscription);
     if (invoiceResponse.ok) {
@@ -102,7 +102,7 @@ export function SettingsExperience({ initialSection = 'account' }: { initialSect
     setBillingBusy(true);
     setBillingMessage(null);
     try {
-      const response = await fetch(`${API_URL}/v1/billing/checkout`, {
+      const response = await fetch(apiUrl('/v1/billing/checkout'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...authHeaders() },
         body: JSON.stringify({ planId }),
@@ -122,7 +122,7 @@ export function SettingsExperience({ initialSection = 'account' }: { initialSect
     setBillingBusy(true);
     setBillingMessage(null);
     try {
-      const response = await fetch(`${API_URL}/v1/billing/portal`, {
+      const response = await fetch(apiUrl('/v1/billing/portal'), {
         method: 'POST',
         headers: authHeaders(),
       });

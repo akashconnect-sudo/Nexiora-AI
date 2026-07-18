@@ -5,8 +5,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@nexiora/ui';
 import { authHeaders, getSessionUser } from '@/lib/session';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+import { apiUrl } from '@/lib/api-url';
 
 type HistoryItem = {
   id: string;
@@ -49,11 +48,11 @@ export function LibraryHome() {
       setError(null);
       try {
         const [histRes, bookRes] = await Promise.all([
-          fetch(`${API_URL}/v1/search?limit=40`, {
+          fetch(apiUrl('/v1/search?limit=40'), {
             headers: { ...authHeaders() },
             cache: 'no-store',
           }),
-          fetch(`${API_URL}/v1/bookmarks`, {
+          fetch(apiUrl('/v1/bookmarks'), {
             headers: { ...authHeaders() },
             cache: 'no-store',
           }),

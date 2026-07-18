@@ -6,8 +6,7 @@ import { FormEvent, useEffect, useState } from 'react';
 import { Button } from '@nexiora/ui';
 import { NewsFeed } from '@/features/news/components/news-feed';
 import { authHeaders, getSessionUser, type SessionUser } from '@/lib/session';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+import { apiUrl } from '@/lib/api-url';
 
 const STARTERS = [
   { label: 'AI policy this week', q: 'AI regulation policy news this week', mode: 'news' },
@@ -45,7 +44,7 @@ export function DashboardHome() {
     let cancelled = false;
     async function loadHistory() {
       try {
-        const res = await fetch(`${API_URL}/v1/search?limit=6`, {
+        const res = await fetch(apiUrl('/v1/search?limit=6'), {
           headers: { ...authHeaders() },
           cache: 'no-store',
         });

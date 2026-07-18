@@ -9,8 +9,7 @@ import { UpgradeModal } from '@/components/upgrade-modal';
 import { authHeaders } from '@/lib/session';
 import { loadPrefs } from '@/lib/prefs';
 import { decodeHtmlEntities } from '@nexiora/shared';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+import { apiUrl } from '@/lib/api-url';
 
 export type Citation = {
   ordinal: number;
@@ -126,7 +125,7 @@ export function SearchExperience({ initialQuery = '', initialMode }: SearchExper
 
   const consumeStream = useCallback(async (id: string) => {
     const started = Date.now();
-    const response = await fetch(`${API_URL}/v1/search/${id}/stream`, {
+    const response = await fetch(apiUrl(`/v1/search/${id}/stream`), {
       headers: { Accept: 'text/event-stream', ...authHeaders() },
     });
     if (!response.ok || !response.body) {
@@ -203,7 +202,7 @@ export function SearchExperience({ initialQuery = '', initialMode }: SearchExper
       }
     }
 
-    const finalRes = await fetch(`${API_URL}/v1/search/${id}`, {
+    const finalRes = await fetch(apiUrl(`/v1/search/${id}`), {
       headers: { ...authHeaders() },
     });
     if (finalRes.ok) {
@@ -245,7 +244,7 @@ export function SearchExperience({ initialQuery = '', initialMode }: SearchExper
       setError(null);
 
       try {
-        const response = await fetch(`${API_URL}/v1/search`, {
+        const response = await fetch(apiUrl('/v1/search'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', ...authHeaders() },
           body: JSON.stringify({ query: trimmed, mode: nextMode }),

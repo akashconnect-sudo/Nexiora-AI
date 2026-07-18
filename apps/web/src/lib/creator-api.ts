@@ -1,9 +1,8 @@
 import { authHeaders } from '@/lib/session';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+import { apiUrl } from '@/lib/api-url';
 
 export async function creatorFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_URL}/v1/creator${path}`, {
+  const res = await fetch(apiUrl(`/v1/creator${path}`), {
     ...init,
     headers: {
       'Content-Type': 'application/json',

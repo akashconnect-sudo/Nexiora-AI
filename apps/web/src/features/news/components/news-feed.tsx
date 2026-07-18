@@ -5,8 +5,7 @@ import Link from 'next/link';
 import { Button } from '@nexiora/ui';
 import { cleanDisplayText, decodeHtmlEntities } from '@nexiora/shared';
 import { authHeaders } from '@/lib/session';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+import { apiUrl } from '@/lib/api-url';
 
 export type NewsItem = {
   id: string;
@@ -71,7 +70,7 @@ export function NewsFeed({ limit = 20, compact = false, showCategoryTabs = true 
     try {
       const params = new URLSearchParams({ limit: String(limit) });
       if (category !== 'all') params.set('category', category);
-      const res = await fetch(`${API_URL}/v1/news?${params}`, {
+      const res = await fetch(apiUrl(`/v1/news?${params}`), {
         cache: 'no-store',
         headers: authHeaders(),
       });

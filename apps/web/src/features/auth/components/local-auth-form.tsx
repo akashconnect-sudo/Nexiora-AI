@@ -3,9 +3,8 @@
 import { FormEvent, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@nexiora/ui';
+import { apiUrl } from '@/lib/api-url';
 import { setSession } from '@/lib/session';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
 
 type Step = 'email' | 'code';
 
@@ -40,7 +39,7 @@ export function LocalAuthForm({ mode }: LocalAuthFormProps) {
     setBusy(true);
     setError(null);
     try {
-      const res = await fetch(`${API_URL}/v1/auth/local/request`, {
+      const res = await fetch(apiUrl('/v1/auth/local/request'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
@@ -66,7 +65,7 @@ export function LocalAuthForm({ mode }: LocalAuthFormProps) {
     setBusy(true);
     setError(null);
     try {
-      const res = await fetch(`${API_URL}/v1/auth/local/verify`, {
+      const res = await fetch(apiUrl('/v1/auth/local/verify'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ challengeId, code }),
