@@ -1,23 +1,25 @@
 /**
  * Browser API base URL.
  *
- * Local: defaults to http://localhost:3001
- * Vercel (same project): same-origin `` so `/v1/...` hits Nest via rewrite
- * If NEXT_PUBLIC_API_URL points at this same site, also use same-origin
- * (avoids HTML login JSON parse errors).
+ * On Vercel always use same-origin (`/v1/...`) so login never hits localhost
+ * or the marketing HTML by mistake.
+ * Locally defaults to http://localhost:3001 unless NEXT_PUBLIC_API_URL is set.
  */
 export function apiBaseUrl(): string {
-  const raw = (process.env.NEXT_PUBLIC_API_URL ?? '').trim().replace(/\/$/, '');
+  if (process.env.NEXT_PUBLIC_VERCEL_ENV || process.env.VERCEL) {
+    return '';
+  }
 
+  const raw = (process.env.NEXT_PUBLIC_API_URL ?? '').trim().replace(/\/$/, '');
   if (!raw || raw === '.' || raw === '/') {
-    return process.env.VERCEL ? '' : 'http://localhost:3001';
+    return 'http://localhost:3001';
   }
 
   if (typeof window !== 'undefined') {
     try {
       if (new URL(raw).host === window.location.host) return '';
     } catch {
-      /* ignore invalid URL */
+      /* ignore */
     }
   }
 

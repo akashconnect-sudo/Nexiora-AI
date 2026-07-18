@@ -42,3 +42,6 @@ packages/api-client/src/generated
 
 # Local editor history
 .history/
+
+# Nest build copied into web for Vercel same-project API
+apps/web/nest-dist/

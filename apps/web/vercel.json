@@ -2,18 +2,5 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
   "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
-  "buildCommand": "cd ../.. && pnpm --filter @nexiora/shared build && pnpm --filter @nexiora/search-core build && pnpm --filter @nexiora/api exec prisma generate && pnpm --filter @nexiora/api build && pnpm --filter @nexiora/web build",
-  "rewrites": [
-    { "source": "/v1/:path*", "destination": "/api/v1/:path*" },
-    { "source": "/health", "destination": "/api/health" },
-    { "source": "/ready", "destination": "/api/ready" },
-    { "source": "/openapi.json", "destination": "/api/openapi.json" }
-  ],
-  "functions": {
-    "api/[...path].js": {
-      "maxDuration": 60,
-      "memory": 1024,
-      "includeFiles": "../api/dist/**"
-    }
-  }
+  "buildCommand": "cd ../.. && pnpm --filter @nexiora/shared build && pnpm --filter @nexiora/search-core build && pnpm --filter @nexiora/api exec prisma generate && pnpm --filter @nexiora/api build && node -e \"require('fs').cpSync('apps/api/dist','apps/web/nest-dist',{recursive:true})\" && pnpm --filter @nexiora/web build"
 }
