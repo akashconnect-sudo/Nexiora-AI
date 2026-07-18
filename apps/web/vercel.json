@@ -5,7 +5,7 @@
   "buildCommand": "cd ../.. && node scripts/vercel-web-build.js",
   "functions": {
     "src/app/api/[[...path]]/route.ts": {
-      "includeFiles": "nest-dist/**,nest-loader.cjs",
+      "includeFiles": "nest-dist/**,nest-runtime/**,nest-loader.cjs",
       "maxDuration": 60
     }
   }

@@ -1,7 +1,7 @@
 import { EventEmitter } from 'node:events';
-import { createRequire } from 'node:module';
-import { join } from 'node:path';
 import { createRequest, createResponse } from 'node-mocks-http';
+// External CJS package — must stay in serverExternalPackages (not webpack-bundled).
+import { loadNexioraExpress } from '@nexiora/nest-runtime';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -11,67 +11,14 @@ type ExpressApp = {
   (req: unknown, res: unknown, next?: (err?: unknown) => void): void;
 };
 
-type NestLoader = {
-  loadNexioraExpress: () => Promise<ExpressApp>;
-};
-
 let cachedExpress: ExpressApp | undefined;
 let bootstrapPromise: Promise<ExpressApp> | undefined;
-
-/**
- * Load nest-loader.cjs with the real Node require.
- * Next/webpack must not rewrite this — otherwise exports become "b is not a function".
- */
-function loadNestLoader(): NestLoader {
-  const packageJson = join(process.cwd(), 'package.json');
-  const nodeRequire = createRequire(packageJson);
-  const candidates = [
-    join(process.cwd(), 'nest-loader.cjs'),
-    join(process.cwd(), 'apps', 'web', 'nest-loader.cjs'),
-  ];
-
-  let lastError: unknown;
-  for (const file of candidates) {
-    try {
-      // Runtime-only require so bundlers cannot rewrite nest-loader exports.
-      const mod = Function(
-        'nodeRequire',
-        'filePath',
-        '"use strict"; return nodeRequire(filePath);',
-      )(nodeRequire, file) as NestLoader & { default?: NestLoader };
-
-      const loader =
-        typeof mod?.loadNexioraExpress === 'function'
-          ? mod
-          : typeof mod?.default?.loadNexioraExpress === 'function'
-            ? mod.default
-            : null;
-
-      if (!loader) {
-        throw new Error(
-          `nest-loader missing loadNexioraExpress (${file}). keys=${JSON.stringify(Object.keys(mod || {}))}`,
-        );
-      }
-      return loader;
-    } catch (error) {
-      lastError = error;
-    }
-  }
-
-  throw lastError instanceof Error
-    ? lastError
-    : new Error(`nest-loader.cjs not found under ${process.cwd()}`);
-}
 
 async function getExpress(): Promise<ExpressApp> {
   if (cachedExpress) return cachedExpress;
   if (!bootstrapPromise) {
     bootstrapPromise = (async () => {
-      const loader = loadNestLoader();
-      if (typeof loader.loadNexioraExpress !== 'function') {
-        throw new Error('loadNexioraExpress is not a function after nest-loader resolve');
-      }
-      const express = await loader.loadNexioraExpress();
+      const express = (await loadNexioraExpress()) as ExpressApp;
       if (typeof express !== 'function') {
         throw new Error(`Nest express app is not a function (got ${typeof express})`);
       }

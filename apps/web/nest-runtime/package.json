@@ -1,0 +1,9 @@
+{
+  "name": "@nexiora/nest-runtime",
+  "version": "0.0.0",
+  "private": true,
+  "main": "index.cjs",
+  "files": [
+    "index.cjs"
+  ]
+}

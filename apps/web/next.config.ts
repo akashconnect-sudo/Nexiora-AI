@@ -21,8 +21,10 @@ const nestProxy =
 
 const nestTraceGlobs = [
   './nest-dist/**/*',
+  './nest-runtime/**/*',
   './nest-loader.cjs',
   '../api/dist/**/*',
+  './node_modules/@nexiora/nest-runtime/**/*',
   './node_modules/@nestjs/**/*',
   './node_modules/@prisma/**/*',
   './node_modules/.prisma/**/*',
@@ -48,6 +50,7 @@ const nextConfig: NextConfig = {
   // Monorepo root so Nest + Prisma deps outside apps/web can be traced.
   outputFileTracingRoot: path.join(configDir, '../..'),
   serverExternalPackages: [
+    '@nexiora/nest-runtime',
     '@nestjs/common',
     '@nestjs/config',
     '@nestjs/core',
