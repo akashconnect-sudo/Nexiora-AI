@@ -11,7 +11,7 @@ Login calls `/v1/auth/...` on the **same domain** — no separate API project re
 
 ### Env (this project)
 
-API / DB / Stripe / SMTP (server):
+API / DB / Stripe / email (server):
 
 ```text
 DATABASE_URL=...
@@ -25,6 +25,15 @@ STRIPE_WEBHOOK_SECRET=...
 STRIPE_PRICE_FREE=...
 STRIPE_PRICE_PRO=...
 STRIPE_PRICE_BUSINESS=...
+RESEND_API_KEY=re_...
+EMAIL_FROM=Nexiora AI <onboarding@resend.dev>
+```
+
+**Production email:** set `RESEND_API_KEY` on Vercel. Gmail SMTP (`SMTP_*`) works on localhost but is blocked/hangs on Vercel serverless — do not rely on SMTP there.
+
+Optional local-only SMTP (not for Vercel):
+
+```text
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=465
 SMTP_SECURE=true
