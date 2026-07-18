@@ -52,9 +52,7 @@ async function proxy(request: Request): Promise<Response> {
   try {
     const express = await getExpress();
     const url = new URL(request.url);
-    const pathname = url.pathname.startsWith('/api')
-      ? url.pathname.slice(4) || '/'
-      : url.pathname;
+    const pathname = url.pathname.startsWith('/api') ? url.pathname.slice(4) || '/' : url.pathname;
 
     const headers: Record<string, string> = {};
     request.headers.forEach((value, key) => {
