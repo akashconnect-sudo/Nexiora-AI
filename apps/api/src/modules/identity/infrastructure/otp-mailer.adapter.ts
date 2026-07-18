@@ -35,6 +35,12 @@ export class OtpMailerAdapter {
     }
 
     if (this.config.smtpConfigured) {
+      // Vercel serverless blocks outbound SMTP (Gmail 465/587 often hangs until timeout).
+      if (process.env.VERCEL) {
+        throw new Error(
+          'SMTP email is not available on Vercel. Set RESEND_API_KEY for production login codes.',
+        );
+      }
       await this.sendWithSmtp(email, subject, text, html);
       return;
     }
@@ -85,13 +91,18 @@ export class OtpMailerAdapter {
     });
 
     try {
-      await transporter.sendMail({
-        from: this.config.emailFrom || this.config.smtpUser,
-        to: email,
-        subject,
-        text,
-        html,
-      });
+      await Promise.race([
+        transporter.sendMail({
+          from: this.config.emailFrom || this.config.smtpUser,
+          to: email,
+          subject,
+          text,
+          html,
+        }),
+        new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('SMTP send timed out')), 15_000);
+        }),
+      ]);
     } finally {
       transporter.close();
     }
