@@ -4,6 +4,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import type { INestApplication } from '@nestjs/common';
 import type { Express } from 'express';
 import express from 'express';
+import 'reflect-metadata';
 import { Logger } from 'nestjs-pino';
 import { AppModule } from '../app.module';
 import { ProblemDetailsFilter } from '../common/filters/problem-details.filter';

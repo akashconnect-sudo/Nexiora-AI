@@ -27,11 +27,41 @@ function resolveCreateApp() {
 async function loadNexioraExpress() {
   const file = resolveCreateApp();
   const requireFromFile = createRequire(file);
-  const mod = requireFromFile(file);
-  if (typeof mod.createNexioraApp !== 'function') {
-    throw new Error(`createNexioraApp missing in ${file}`);
+
+  requireFromFile('reflect-metadata');
+
+  const expressMod = requireFromFile('express');
+  const expressFn =
+    typeof expressMod === 'function'
+      ? expressMod
+      : typeof expressMod?.default === 'function'
+        ? expressMod.default
+        : null;
+  if (!expressFn) {
+    throw new Error(
+      `express resolve failed from ${file}: type=${typeof expressMod} keys=${JSON.stringify(
+        Object.keys(expressMod || {}),
+      )}`,
+    );
   }
-  const { express } = await mod.createNexioraApp();
+
+  const mod = requireFromFile(file);
+  const create =
+    typeof mod.createNexioraApp === 'function'
+      ? mod.createNexioraApp
+      : typeof mod.default?.createNexioraApp === 'function'
+        ? mod.default.createNexioraApp
+        : null;
+  if (!create) {
+    throw new Error(
+      `createNexioraApp missing in ${file}. keys=${JSON.stringify(Object.keys(mod || {}))}`,
+    );
+  }
+
+  const { express } = await create();
+  if (typeof express !== 'function') {
+    throw new Error(`createNexioraApp returned non-function express (${typeof express})`);
+  }
   return express;
 }
 
