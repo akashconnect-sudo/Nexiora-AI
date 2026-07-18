@@ -64,7 +64,9 @@ export class LocalAuthService {
         this.logger.error(`OTP email failed for ${email}: ${(error as Error).message}`);
         throw new DomainError(
           ERROR_CODES.PROVIDER_UNAVAILABLE,
-          'Could not send the verification email. Please try again.',
+          (error as Error).message?.includes('RESEND_API_KEY')
+            ? (error as Error).message
+            : 'Could not send the verification email. On Vercel set RESEND_API_KEY and redeploy.',
           502,
         );
       }
