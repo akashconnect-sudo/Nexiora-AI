@@ -107,12 +107,19 @@ export function SettingsExperience({ initialSection = 'account' }: { initialSect
         headers: { 'Content-Type': 'application/json', ...authHeaders() },
         body: JSON.stringify({ planId }),
       });
-      const body = (await response.json()) as { url?: string; message?: string; detail?: string };
+      const body = (await response.json().catch(() => ({}))) as {
+        url?: string;
+        message?: string;
+        detail?: string;
+        error?: string;
+      };
       if (response.ok && body.url) {
         window.location.assign(body.url);
         return;
       }
-      setBillingMessage(body.message ?? body.detail ?? 'Checkout is not available.');
+      setBillingMessage(body.detail ?? body.message ?? body.error ?? 'Checkout is not available.');
+    } catch (error) {
+      setBillingMessage((error as Error).message || 'Checkout is not available.');
     } finally {
       setBillingBusy(false);
     }

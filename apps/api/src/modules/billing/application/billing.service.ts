@@ -83,7 +83,8 @@ export class BillingService implements OnModuleInit {
 
   /**
    * Creates a Stripe Checkout Session when Stripe is configured.
-   * Free plan uses a one-time ₹2 INR payment with invoice generation.
+   * Free plan uses a one-time $2 USD payment with invoice generation
+   * (Stripe Checkout rejects amounts under ~USD $0.50 — ₹2 is too small).
    * Pro/Business use subscriptions (invoices created automatically).
    */
   async createCheckout(userId: string, planId: CheckoutPlanId) {
@@ -105,7 +106,7 @@ export class BillingService implements OnModuleInit {
     if (!priceId) {
       throw new DomainError(
         ERROR_CODES.VALIDATION_ERROR,
-        `No Stripe price for plan ${planId}`,
+        `No Stripe price for plan ${planId}. Set STRIPE_PRICE_${planId.toUpperCase()}.`,
         400,
       );
     }
@@ -129,19 +130,54 @@ export class BillingService implements OnModuleInit {
     } else {
       // One-time Free activation: create a Stripe invoice/bill immediately.
       params.set('invoice_creation[enabled]', 'true');
-      params.set('invoice_creation[invoice_data][description]', 'Nexiora Free activation — ₹2');
+      params.set('invoice_creation[invoice_data][description]', 'Nexiora Free activation — $2');
       params.set('invoice_creation[invoice_data][metadata][userId]', userId);
       params.set('invoice_creation[invoice_data][metadata][planId]', 'free');
     }
 
-    const response = await this.stripeRequest('/checkout/sessions', params);
+    let response = await this.stripeRequest('/checkout/sessions', params);
+
+    // Legacy Free prices in INR ₹2 fail Stripe's ~$0.50 minimum — fall back to $2 USD.
+    if (!response.ok && planId === 'free') {
+      const text = await response.text();
+      if (text.includes('amount_too_small')) {
+        this.logger.warn(
+          `Free Stripe price ${priceId} is below Checkout minimum; retrying with $2 USD price_data`,
+        );
+        const fallback = new URLSearchParams({
+          mode: 'payment',
+          success_url: `${this.config.publicWebUrl}/settings/subscription?checkout=success`,
+          cancel_url: `${this.config.publicWebUrl}/settings/subscription?checkout=cancel`,
+          client_reference_id: userId,
+          customer: customerId,
+          'metadata[userId]': userId,
+          'metadata[planId]': 'free',
+          'line_items[0][quantity]': '1',
+          'line_items[0][price_data][currency]': 'usd',
+          'line_items[0][price_data][unit_amount]': '200',
+          'line_items[0][price_data][product_data][name]': 'Nexiora Free activation',
+          'invoice_creation[enabled]': 'true',
+          'invoice_creation[invoice_data][description]': 'Nexiora Free activation — $2',
+          'invoice_creation[invoice_data][metadata][userId]': userId,
+          'invoice_creation[invoice_data][metadata][planId]': 'free',
+        });
+        response = await this.stripeRequest('/checkout/sessions', fallback);
+      } else {
+        this.logger.error(`Stripe checkout failed: ${text}`);
+        throw new DomainError(
+          ERROR_CODES.PROVIDER_UNAVAILABLE,
+          stripeErrorMessage(text, 'Unable to create checkout session'),
+          502,
+        );
+      }
+    }
 
     if (!response.ok) {
       const text = await response.text();
       this.logger.error(`Stripe checkout failed: ${text}`);
       throw new DomainError(
         ERROR_CODES.PROVIDER_UNAVAILABLE,
-        'Unable to create checkout session',
+        stripeErrorMessage(text, 'Unable to create checkout session'),
         502,
       );
     }
@@ -444,4 +480,15 @@ export class BillingService implements OnModuleInit {
       this.logger.warn(`Plan seed failed: ${(error as Error).message}`);
     }
   }
+}
+
+function stripeErrorMessage(raw: string, fallback: string): string {
+  try {
+    const parsed = JSON.parse(raw) as { error?: { message?: string; code?: string } };
+    const message = parsed.error?.message?.trim();
+    if (message) return message;
+  } catch {
+    /* ignore */
+  }
+  return fallback;
 }

@@ -50,7 +50,7 @@ export class EntitlementsService {
     } else {
       throw new DomainError(
         ERROR_CODES.PAYMENT_REQUIRED,
-        'Sign in and complete the ₹2 Free activation payment to start searching.',
+        'Sign in and complete the $2 Free activation payment to start searching.',
         402,
         { paymentRequired: true, activationFeeInr: 2, suggestedPlans: ['free', 'pro', 'business'] },
       );
@@ -118,7 +118,7 @@ export class EntitlementsService {
       if (!(await this.prisma.isHealthy())) {
         throw new DomainError(
           ERROR_CODES.PAYMENT_REQUIRED,
-          'Complete the ₹2 Free activation payment to use Nova Search.',
+          'Complete the $2 Free activation payment to use Nova Search.',
           402,
           {
             paymentRequired: true,
@@ -137,7 +137,7 @@ export class EntitlementsService {
 
     throw new DomainError(
       ERROR_CODES.PAYMENT_REQUIRED,
-      'Complete the ₹2 Free activation payment to use Nova Search.',
+      'Complete the $2 Free activation payment to use Nova Search.',
       402,
       { paymentRequired: true, activationFeeInr: 2, suggestedPlans: ['free', 'pro', 'business'] },
     );
