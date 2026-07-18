@@ -1,12 +1,8 @@
 import { config as loadDotenv } from 'dotenv';
 import { existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { NestFactory } from '@nestjs/core';
-import { Logger } from 'nestjs-pino';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { AppModule } from './app.module';
 import { AppConfigService } from './bootstrap/app-config.service';
-import { ProblemDetailsFilter } from './common/filters/problem-details.filter';
+import { createNexioraApp } from './bootstrap/create-app';
 
 /** Load monorepo root + local .env before ConfigModule validates. */
 function loadEnvFiles(): void {
@@ -25,49 +21,11 @@ function loadEnvFiles(): void {
 loadEnvFiles();
 
 async function bootstrap(): Promise<void> {
-  const app = await NestFactory.create(AppModule, { bufferLogs: true, rawBody: true });
-  const logger = app.get(Logger);
-  app.useLogger(logger);
-  app.useGlobalFilters(new ProblemDetailsFilter());
-
-  const config = app.get(AppConfigService);
-
-  app.setGlobalPrefix('v1', {
-    exclude: ['health', 'ready', 'docs', 'docs-json', 'openapi.json'],
-  });
-
-  app.enableCors({
-    origin: config.corsOrigins,
-    credentials: true,
-  });
-
-  const swagger = new DocumentBuilder()
-    .setTitle('Nexiora AI API')
-    .setDescription('Nova Search — AI Knowledge Platform API')
-    .setVersion('1.0.0')
-    .addBearerAuth()
-    .addApiKey({ type: 'apiKey', name: 'X-Api-Key', in: 'header' }, 'api-key')
-    .build();
-
-  const document = SwaggerModule.createDocument(app, swagger);
-  SwaggerModule.setup('docs', app, document);
-  const http = app.getHttpAdapter();
-  http.get('/openapi.json', (_req: unknown, res: { json: (body: unknown) => void }) => {
-    res.json(document);
-  });
-  http.get('/', (_req: unknown, res: { json: (body: unknown) => void }) => {
-    res.json({
-      name: 'Nexiora AI API',
-      status: 'ok',
-      health: '/health',
-      docs: '/docs',
-      openapi: '/openapi.json',
-      web: 'http://localhost:3000',
-    });
-  });
-
-  await app.listen(config.apiPort, config.apiHost);
-  logger.log(`Nexiora API listening on ${config.apiHost}:${config.apiPort}`);
+  const { nest } = await createNexioraApp();
+  const config = nest.get(AppConfigService);
+  await nest.listen(config.apiPort, config.apiHost);
+  // Logger already attached in createNexioraApp
+  console.log(`Nexiora API listening on ${config.apiHost}:${config.apiPort}`);
 }
 
 bootstrap().catch((error: unknown) => {

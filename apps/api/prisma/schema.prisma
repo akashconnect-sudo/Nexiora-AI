@@ -4,7 +4,9 @@
  * See docs/planning/04-DATABASE-SCHEMA.md for full design.
  */
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  // native = local; rhel-openssl-3.0.x = Vercel Node 22 Linux
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
 }
 
 datasource db {
