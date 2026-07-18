@@ -1,6 +1,7 @@
 import { EventEmitter } from 'node:events';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { createRequest, createResponse } from 'node-mocks-http';
 
 export const runtime = 'nodejs';
@@ -23,20 +24,24 @@ function resolveCreateAppPath(): string {
     join(process.cwd(), 'nest-dist', 'bootstrap', 'create-app.js'),
     join(process.cwd(), '..', 'api', 'dist', 'bootstrap', 'create-app.js'),
   ];
-  for (const file of candidates) {
-    if (existsSync(file)) return file;
+  const found = candidates.find((file) => existsSync(file));
+  if (!found) {
+    throw new Error(
+      `Nest create-app missing. Looked for: ${candidates.join(' | ')}. Ensure @nexiora/api build + nest-dist copy ran.`,
+    );
   }
-  throw new Error(
-    `Nest create-app missing. Looked for: ${candidates.join(' | ')}. Ensure @nexiora/api build + nest-dist copy ran.`,
-  );
+  return found;
 }
 
 async function getExpress(): Promise<ExpressApp> {
   if (cachedExpress) return cachedExpress;
   if (!bootstrapPromise) {
     bootstrapPromise = (async () => {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const mod = require(resolveCreateAppPath()) as NestCreateApp;
+      const file = resolveCreateAppPath();
+      const mod = (await import(pathToFileURL(file).href)) as NestCreateApp;
+      if (typeof mod.createNexioraApp !== 'function') {
+        throw new Error(`createNexioraApp missing in ${file}`);
+      }
       const { express } = await mod.createNexioraApp();
       cachedExpress = express;
       return express;

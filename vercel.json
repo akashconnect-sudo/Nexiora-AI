@@ -2,6 +2,6 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
   "installCommand": "pnpm install --frozen-lockfile",
-  "buildCommand": "pnpm --filter @nexiora/shared build && pnpm --filter @nexiora/search-core build && pnpm --filter @nexiora/api exec prisma generate && pnpm --filter @nexiora/api build && node -e \"require('fs').cpSync('apps/api/dist','apps/web/nest-dist',{recursive:true})\" && pnpm --filter @nexiora/web build",
+  "buildCommand": "node scripts/vercel-web-build.js",
   "ignoreCommand": "git diff --quiet HEAD^ HEAD -- ./apps/web ./apps/api ./packages/shared ./packages/search-core ./packages/ui ./package.json ./pnpm-lock.yaml ./pnpm-workspace.yaml"
 }
