@@ -51,7 +51,7 @@ function Section({ title, items }: { title: string; items: string[] }) {
 export function CreatorIdeasStudio() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [topic, setTopic] = useState(searchParams.get('topic') ?? '');
+  const [topic, setTopic] = useState(searchParams?.get('topic') ?? '');
   const [pack, setPack] = useState<IdeaPack | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -61,7 +61,7 @@ export function CreatorIdeasStudio() {
   }, [router]);
 
   useEffect(() => {
-    const initial = searchParams.get('topic');
+    const initial = searchParams?.get('topic');
     if (initial) {
       setTopic(initial);
       void run(initial);

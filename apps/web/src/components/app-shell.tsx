@@ -119,7 +119,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       setUser(session);
       setAuthReady(true);
       if (!session) {
-        router.replace(`/sign-in?next=${encodeURIComponent(pathname)}`);
+        router.replace(`/sign-in?next=${encodeURIComponent(pathname ?? '/')}`);
       }
     };
     sync();
@@ -133,7 +133,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!user) return;
-    if (pathname.startsWith('/settings')) return;
+    if ((pathname ?? '/').startsWith('/settings')) return;
 
     let cancelled = false;
     void (async () => {
@@ -171,7 +171,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <nav className="flex flex-1 flex-col gap-1 px-3" aria-label="App">
       {NAV.map((item) => {
         const active =
-          pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
+          pathname === item.href ||
+          (item.href !== '/dashboard' && (pathname ?? '').startsWith(item.href));
         return (
           <Link
             key={item.href}
@@ -307,7 +308,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <p className="truncate text-sm font-medium text-nx-ink">
                 {NAV.find(
                   (n) =>
-                    pathname === n.href || (n.href !== '/dashboard' && pathname.startsWith(n.href)),
+                    pathname === n.href ||
+                    (n.href !== '/dashboard' && (pathname ?? '').startsWith(n.href)),
                 )?.label ?? 'Nova Search'}
               </p>
               <p className="hidden text-xs text-nx-muted sm:block">

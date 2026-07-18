@@ -66,7 +66,7 @@ export function SettingsExperience({ initialSection = 'account' }: { initialSect
   }, [router]);
 
   useEffect(() => {
-    if (searchParams.get('checkout') !== 'success') return;
+    if (searchParams?.get('checkout') !== 'success') return;
     setSection('billing');
     setBillingMessage('Payment received. Your bill will appear below in a moment.');
     let attempts = 0;
