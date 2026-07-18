@@ -13,7 +13,7 @@
 6. REST `POST /v1/search`, `GET /v1/search/:id`, SSE `/v1/search/:id/stream`, history
 7. Web Universal Search UI with summary, detailed answer, citation rail
 8. Bookmarks API (`/v1/bookmarks`)
-9. Billing plans + Stripe checkout when configured
+9. Billing plans + Lemon Squeezy checkout when configured
 
 ## Verify
 
@@ -32,4 +32,4 @@ curl -X POST http://localhost:3001/v1/search \
 
 - Without Docker, search still works via memory store + live public APIs.
 - Without `OPENAI_API_KEY`, answers use `nexiora-extractive-v1` (citation-grounded).
-- Without Stripe keys, checkout returns configuration instructions (no fake charges).
+- Without Lemon Squeezy keys, checkout returns configuration instructions (no fake charges).

@@ -183,10 +183,10 @@ Common codes: `UNAUTHORIZED`, `FORBIDDEN`, `VALIDATION_ERROR`, `NOT_FOUND`, `RAT
 | Method | Path                       | Description             |
 | ------ | -------------------------- | ----------------------- |
 | GET    | `/billing/plans`           | Public plans            |
-| POST   | `/billing/checkout`        | Stripe checkout session |
+| POST   | `/billing/checkout`        | Lemon Squeezy checkout  |
 | POST   | `/billing/portal`          | Customer portal         |
 | GET    | `/billing/subscription`    | Current sub             |
-| POST   | `/billing/webhooks/stripe` | Stripe webhook          |
+| POST   | `/billing/webhook`         | Lemon Squeezy webhook   |
 
 ### 3.8 Developer
 

@@ -98,7 +98,7 @@ Nova Search is **not** a traditional keyword search engine. It is an intent-awar
 
 ### 2.4 Constraints
 
-- Must not store raw payment card data (Stripe/processor tokenization)
+- Must not store raw payment card data (payment-processor tokenization)
 - Must comply with GDPR/CCPA data subject rights
 - Must respect robots.txt / API ToS for source providers
 - Must not present AI-generated content as verified fact without citations
@@ -204,7 +204,7 @@ Nova Search is **not** a traditional keyword search engine. It is an intent-awar
 | ID         | Requirement                                         | Priority |
 | ---------- | --------------------------------------------------- | -------- |
 | FR-BILL-01 | Free / Pro / Business subscription tiers            | Must     |
-| FR-BILL-02 | Stripe (or equivalent) checkout + customer portal   | Must     |
+| FR-BILL-02 | Lemon Squeezy checkout + customer portal            | Must     |
 | FR-BILL-03 | API keys with scoped permissions and usage metering | Must     |
 | FR-BILL-04 | Soft and hard rate limits per plan                  | Must     |
 
@@ -318,7 +318,7 @@ Landing, Auth, Dashboard, Search Results, News, Creator, Research, Settings, Bil
 | YouTube Data API                                       | Video results           |
 | Academic (Semantic Scholar, Crossref, OpenAlex)        | Papers                  |
 | GitHub API                                             | Code/repos              |
-| Stripe                                                 | Billing                 |
+| Lemon Squeezy                                          | Billing                 |
 | Clerk / Auth.js                                        | Identity                |
 | S3 / R2                                                | Objects                 |
 | OpenSearch / Qdrant                                    | Lexical + vector search |

@@ -18,11 +18,16 @@ export const envSchema = z.object({
   CLERK_PUBLISHABLE_KEY: z.string().optional().default(''),
   OPENAI_API_KEY: z.string().optional().default(''),
   OPENAI_MODEL: z.string().default('gpt-4o-mini'),
-  STRIPE_SECRET_KEY: z.string().optional().default(''),
-  STRIPE_WEBHOOK_SECRET: z.string().optional().default(''),
-  STRIPE_PRICE_FREE: z.string().optional().default(''),
-  STRIPE_PRICE_PRO: z.string().optional().default(''),
-  STRIPE_PRICE_BUSINESS: z.string().optional().default(''),
+  LEMON_SQUEEZY_API_KEY: z.string().optional().default(''),
+  LEMON_SQUEEZY_STORE_ID: z.string().optional().default(''),
+  LEMON_SQUEEZY_WEBHOOK_SECRET: z.string().optional().default(''),
+  LEMON_SQUEEZY_VARIANT_FREE: z.string().optional().default(''),
+  LEMON_SQUEEZY_VARIANT_PRO: z.string().optional().default(''),
+  LEMON_SQUEEZY_VARIANT_BUSINESS: z.string().optional().default(''),
+  LEMON_SQUEEZY_TEST_MODE: z
+    .enum(['true', 'false'])
+    .default('true')
+    .transform((value) => value === 'true'),
   RESEND_API_KEY: z.string().optional().default(''),
   EMAIL_FROM: z.string().optional().default('Nexiora AI <onboarding@resend.dev>'),
   SMTP_HOST: z.string().optional().default(''),

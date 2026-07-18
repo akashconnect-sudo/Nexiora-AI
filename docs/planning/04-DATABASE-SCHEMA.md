@@ -325,23 +325,26 @@ model SourceTrust {
 
 ```prisma
 model Plan {
-  id            String   @id // free|pro|business|enterprise
-  name          String
-  monthlyPriceCents Int
-  entitlements  Json     // quotas, feature flags
-  stripePriceId String?
+  id                    String   @id // free|pro|business|enterprise
+  name                  String
+  monthlyPriceCents     Int
+  entitlements          Json     // quotas, feature flags
+  lemonSqueezyVariantId String?
 }
 
 model Subscription {
-  id               String   @id @db.Uuid
-  userId           String   @unique @db.Uuid
-  planId           String
-  status           String   // active|past_due|canceled|trialing
-  stripeCustomerId String?  @unique
-  stripeSubId      String?  @unique
-  currentPeriodEnd DateTime?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  id                     String   @id @db.Uuid
+  userId                 String   @unique @db.Uuid
+  planId                 String
+  provider               String   @default("lemonsqueezy")
+  status                 String   // active|past_due|cancelled|trialing
+  externalCustomerId     String?  @unique
+  externalSubscriptionId String?  @unique
+  externalOrderId        String?
+  variantId              String?
+  currentPeriodEnd       DateTime?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
 }
 
 model ApiKey {

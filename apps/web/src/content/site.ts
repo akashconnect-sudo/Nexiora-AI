@@ -227,7 +227,7 @@ export const pricingCopy = {
     },
   ],
   footnote:
-    'Free access requires a one-time $2 activation payment. Pro and Business renew monthly until cancelled. Stripe checkout activates when billing keys are configured.',
+    'Free access requires a one-time $2 activation payment. Pro and Business renew monthly until cancelled. Payments are securely processed by Lemon Squeezy.',
 } as const;
 
 export const aboutCopy = {

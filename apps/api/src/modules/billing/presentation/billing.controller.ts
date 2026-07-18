@@ -42,9 +42,9 @@ export class BillingController {
   @ApiBearerAuth()
   checkout(
     @Req() req: AuthenticatedRequest,
-    @Body() body: { planId: 'free' | 'pro' | 'business' },
+    @Body() body: { planId?: unknown },
   ) {
-    return this.billing.createCheckout(req.userId!, body.planId ?? 'free');
+    return this.billing.createCheckout(req.userId!, body.planId);
   }
 
   @Post('portal')
@@ -55,7 +55,11 @@ export class BillingController {
   }
 
   @Post('webhook')
-  webhook(@Req() req: RawBodyRequest<Request>, @Headers('stripe-signature') signature?: string) {
-    return this.billing.handleWebhook(req.rawBody ?? Buffer.from(''), signature);
+  webhook(
+    @Req() req: RawBodyRequest<Request>,
+    @Headers('x-signature') signature?: string,
+    @Headers('x-event-name') eventName?: string,
+  ) {
+    return this.billing.handleWebhook(req.rawBody ?? Buffer.from(''), signature, eventName);
   }
 }

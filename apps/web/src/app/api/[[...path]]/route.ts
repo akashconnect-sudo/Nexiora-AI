@@ -56,7 +56,7 @@ function toNodeRequest(
   req.method = request.method;
   req.url = `${pathname}${search}`;
   req.headers = headers;
-  // Nest rawBody / stripe webhook support
+  // Preserve exact bytes for Nest webhook signature verification.
   (req as IncomingMessage & { rawBody?: Buffer }).rawBody = body;
   return req;
 }

@@ -75,24 +75,32 @@ export class AppConfigService {
     return this.config.get('OPENAI_MODEL', { infer: true });
   }
 
-  get stripeSecretKey(): string {
-    return this.config.get('STRIPE_SECRET_KEY', { infer: true });
+  get lemonSqueezyApiKey(): string {
+    return this.config.get('LEMON_SQUEEZY_API_KEY', { infer: true }).trim();
   }
 
-  get stripeWebhookSecret(): string {
-    return this.config.get('STRIPE_WEBHOOK_SECRET', { infer: true });
+  get lemonSqueezyStoreId(): string {
+    return this.config.get('LEMON_SQUEEZY_STORE_ID', { infer: true }).trim();
   }
 
-  get stripePriceFree(): string {
-    return this.config.get('STRIPE_PRICE_FREE', { infer: true });
+  get lemonSqueezyWebhookSecret(): string {
+    return this.config.get('LEMON_SQUEEZY_WEBHOOK_SECRET', { infer: true }).trim();
   }
 
-  get stripePricePro(): string {
-    return this.config.get('STRIPE_PRICE_PRO', { infer: true });
+  get lemonSqueezyVariantFree(): string {
+    return this.config.get('LEMON_SQUEEZY_VARIANT_FREE', { infer: true }).trim();
   }
 
-  get stripePriceBusiness(): string {
-    return this.config.get('STRIPE_PRICE_BUSINESS', { infer: true });
+  get lemonSqueezyVariantPro(): string {
+    return this.config.get('LEMON_SQUEEZY_VARIANT_PRO', { infer: true }).trim();
+  }
+
+  get lemonSqueezyVariantBusiness(): string {
+    return this.config.get('LEMON_SQUEEZY_VARIANT_BUSINESS', { infer: true }).trim();
+  }
+
+  get lemonSqueezyTestMode(): boolean {
+    return this.config.get('LEMON_SQUEEZY_TEST_MODE', { infer: true });
   }
 
   get publicWebUrl(): string {

@@ -96,7 +96,7 @@
 - [ ] Secrets loaded
 - [ ] Migrations applied
 - [ ] WAF rules on
-- [ ] Stripe webhooks verified
+- [ ] Lemon Squeezy webhooks verified
 - [ ] LLM/search provider keys scoped
 - [ ] Dashboards + alerts live
 - [ ] Status page configured

@@ -51,7 +51,7 @@
 6. Search REST + WS/SSE
 7. Web search UI (omnibox + results + citation rail)
 8. History + bookmarks
-9. Stripe Free/Pro
+9. Lemon Squeezy Free/Pro
 10. Landing page (brand-first)
 
 **Exit criteria:** Authenticated user completes cited search end-to-end in prod-like env; billing works; load test baseline recorded.

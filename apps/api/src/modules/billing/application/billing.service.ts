@@ -1,5 +1,5 @@
 import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
-import { createHmac, timingSafeEqual } from 'node:crypto';
+import { createHash, createHmac, timingSafeEqual } from 'node:crypto';
 import { DEFAULT_PLAN_ENTITLEMENTS, ERROR_CODES } from '@nexiora/shared';
 import type { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
@@ -7,6 +7,33 @@ import { AppConfigService } from '../../../bootstrap/app-config.service';
 import { DomainError } from '../../../common/errors/domain-error';
 
 export type CheckoutPlanId = 'free' | 'pro' | 'business';
+
+type LemonResource<T extends Record<string, unknown>> = {
+  type: string;
+  id: string;
+  attributes: T;
+};
+
+type LemonWebhookPayload = {
+  meta?: {
+    event_name?: string;
+    custom_data?: Record<string, unknown>;
+  };
+  data: LemonResource<Record<string, unknown>>;
+};
+
+type BillingInvoice = {
+  id: string;
+  number: string;
+  label: string;
+  status: string;
+  amountPaid: number;
+  currency: string;
+  createdAt: string;
+  hostedUrl: string | null;
+  pdfUrl: string | null;
+  kind: 'invoice' | 'receipt';
+};
 
 @Injectable()
 export class BillingService implements OnModuleInit {
@@ -65,7 +92,7 @@ export class BillingService implements OnModuleInit {
         activationFeeInr: 2,
       };
     }
-    const accessGranted = sub.status === 'active' || sub.status === 'trialing';
+    const accessGranted = hasActiveBillingStatus(sub.status, sub.currentPeriodEnd);
     return {
       planId: sub.planId,
       status: sub.status,
@@ -81,183 +108,168 @@ export class BillingService implements OnModuleInit {
     return Boolean(sub.accessGranted);
   }
 
-  /**
-   * Creates a Stripe Checkout Session when Stripe is configured.
-   * Free plan uses a one-time $2 USD payment with invoice generation
-   * (Stripe Checkout rejects amounts under ~USD $0.50 — ₹2 is too small).
-   * Pro/Business use subscriptions (invoices created automatically).
-   */
-  async createCheckout(userId: string, planId: CheckoutPlanId) {
-    if (!this.config.stripeSecretKey) {
+  async createCheckout(userId: string, requestedPlanId: unknown) {
+    if (!isCheckoutPlanId(requestedPlanId)) {
+      throw new DomainError(ERROR_CODES.VALIDATION_ERROR, 'Invalid billing plan.', 400);
+    }
+    const planId = requestedPlanId;
+    if (!this.config.lemonSqueezyApiKey || !this.config.lemonSqueezyStoreId) {
       return {
         mode: 'manual',
-        message: 'Stripe is not configured. Set STRIPE_SECRET_KEY to enable checkout.',
+        message:
+          'Lemon Squeezy is not configured. Set LEMON_SQUEEZY_API_KEY and LEMON_SQUEEZY_STORE_ID.',
         planId,
         userId,
       };
     }
 
-    const priceId =
-      planId === 'free'
-        ? this.config.stripePriceFree
-        : planId === 'pro'
-          ? this.config.stripePricePro
-          : this.config.stripePriceBusiness;
-    if (!priceId) {
+    const variantId = this.variantIdForPlan(planId);
+    if (!variantId) {
       throw new DomainError(
         ERROR_CODES.VALIDATION_ERROR,
-        `No Stripe price for plan ${planId}. Set STRIPE_PRICE_${planId.toUpperCase()}.`,
+        `No Lemon Squeezy variant for ${planId}. Set LEMON_SQUEEZY_VARIANT_${planId.toUpperCase()}.`,
+        400,
+      );
+    }
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user?.email) {
+      throw new DomainError(
+        ERROR_CODES.VALIDATION_ERROR,
+        'User email is required for checkout.',
         400,
       );
     }
 
-    const customerId = await this.ensureStripeCustomer(userId);
-    const mode = planId === 'free' ? 'payment' : 'subscription';
-    const params = new URLSearchParams({
-      mode,
-      success_url: `${this.config.publicWebUrl}/settings/subscription?checkout=success`,
-      cancel_url: `${this.config.publicWebUrl}/settings/subscription?checkout=cancel`,
-      client_reference_id: userId,
-      customer: customerId,
-      'metadata[userId]': userId,
-      'metadata[planId]': planId,
-      'line_items[0][price]': priceId,
-      'line_items[0][quantity]': '1',
+    const response = await this.lemonRequest('/checkouts', {
+      method: 'POST',
+      body: JSON.stringify({
+        data: {
+          type: 'checkouts',
+          attributes: {
+            product_options: {
+              redirect_url: `${this.config.publicWebUrl}/settings/subscription?checkout=success`,
+              enabled_variants: [Number(variantId)],
+              receipt_button_text: 'Return to Nexiora AI',
+              receipt_link_url: `${this.config.publicWebUrl}/settings/subscription`,
+            },
+            checkout_options: {
+              embed: false,
+              logo: true,
+              media: true,
+              discount: planId !== 'free',
+            },
+            checkout_data: {
+              email: user.email,
+              name: user.displayName ?? user.email,
+              custom: {
+                user_id: userId,
+                plan_id: planId,
+              },
+            },
+            test_mode: this.config.lemonSqueezyTestMode,
+          },
+          relationships: {
+            store: { data: { type: 'stores', id: this.config.lemonSqueezyStoreId } },
+            variant: { data: { type: 'variants', id: variantId } },
+          },
+        },
+      }),
     });
-    if (mode === 'subscription') {
-      params.set('subscription_data[metadata][userId]', userId);
-      params.set('subscription_data[metadata][planId]', planId);
-    } else {
-      // One-time Free activation: create a Stripe invoice/bill immediately.
-      params.set('invoice_creation[enabled]', 'true');
-      params.set('invoice_creation[invoice_data][description]', 'Nexiora Free activation — $2');
-      params.set('invoice_creation[invoice_data][metadata][userId]', userId);
-      params.set('invoice_creation[invoice_data][metadata][planId]', 'free');
-    }
-
-    let response = await this.stripeRequest('/checkout/sessions', params);
-
-    // Legacy Free prices in INR ₹2 fail Stripe's ~$0.50 minimum — fall back to $2 USD.
-    if (!response.ok && planId === 'free') {
-      const text = await response.text();
-      if (text.includes('amount_too_small')) {
-        this.logger.warn(
-          `Free Stripe price ${priceId} is below Checkout minimum; retrying with $2 USD price_data`,
-        );
-        const fallback = new URLSearchParams({
-          mode: 'payment',
-          success_url: `${this.config.publicWebUrl}/settings/subscription?checkout=success`,
-          cancel_url: `${this.config.publicWebUrl}/settings/subscription?checkout=cancel`,
-          client_reference_id: userId,
-          customer: customerId,
-          'metadata[userId]': userId,
-          'metadata[planId]': 'free',
-          'line_items[0][quantity]': '1',
-          'line_items[0][price_data][currency]': 'usd',
-          'line_items[0][price_data][unit_amount]': '200',
-          'line_items[0][price_data][product_data][name]': 'Nexiora Free activation',
-          'invoice_creation[enabled]': 'true',
-          'invoice_creation[invoice_data][description]': 'Nexiora Free activation — $2',
-          'invoice_creation[invoice_data][metadata][userId]': userId,
-          'invoice_creation[invoice_data][metadata][planId]': 'free',
-        });
-        response = await this.stripeRequest('/checkout/sessions', fallback);
-      } else {
-        this.logger.error(`Stripe checkout failed: ${text}`);
-        throw new DomainError(
-          ERROR_CODES.PROVIDER_UNAVAILABLE,
-          stripeErrorMessage(text, 'Unable to create checkout session'),
-          502,
-        );
-      }
-    }
-
     if (!response.ok) {
       const text = await response.text();
-      this.logger.error(`Stripe checkout failed: ${text}`);
+      this.logger.error(`Lemon Squeezy checkout failed: ${text}`);
       throw new DomainError(
         ERROR_CODES.PROVIDER_UNAVAILABLE,
-        stripeErrorMessage(text, 'Unable to create checkout session'),
+        lemonErrorMessage(text, 'Unable to create checkout.'),
         502,
       );
     }
-
-    const session = (await response.json()) as { id: string; url: string };
-    return { mode: 'stripe', id: session.id, url: session.url };
+    const checkout = (await response.json()) as {
+      data: LemonResource<{ url: string }>;
+    };
+    return { mode: 'lemonsqueezy', id: checkout.data.id, url: checkout.data.attributes.url };
   }
 
   async listInvoices(userId: string) {
-    const customerId = await this.resolveStripeCustomerId(userId);
-    if (!this.config.stripeSecretKey || !customerId) {
-      return { configured: Boolean(this.config.stripeSecretKey), invoices: [] };
+    if (!this.config.lemonSqueezyApiKey) {
+      return { configured: false, invoices: [] };
     }
-
-    const [invoiceResponse, chargeResponse] = await Promise.all([
-      this.stripeRequest(`/invoices?customer=${encodeURIComponent(customerId)}&limit=24`),
-      this.stripeRequest(`/charges?customer=${encodeURIComponent(customerId)}&limit=24`),
+    const [subscription, user] = await Promise.all([
+      this.prisma.subscription.findUnique({ where: { userId } }),
+      this.prisma.user.findUnique({ where: { id: userId } }),
     ]);
+    if (!user?.email) return { configured: true, invoices: [] };
 
-    if (!invoiceResponse.ok) {
-      throw new DomainError(ERROR_CODES.PROVIDER_UNAVAILABLE, 'Unable to load invoices', 502);
+    const orderFilters = new URLSearchParams({ 'page[size]': '24' });
+    if (subscription?.externalCustomerId) {
+      orderFilters.set('filter[customer_id]', subscription.externalCustomerId);
+    } else {
+      orderFilters.set('filter[user_email]', user.email);
     }
-
-    const invoicePayload = (await invoiceResponse.json()) as {
-      data: Array<{
-        id: string;
-        number: string | null;
-        status: string | null;
-        amount_paid: number;
-        currency: string;
-        created: number;
-        hosted_invoice_url: string | null;
-        invoice_pdf: string | null;
-        description: string | null;
-      }>;
+    const orderResponse = await this.lemonRequest(`/orders?${orderFilters.toString()}`);
+    if (!orderResponse.ok) {
+      throw new DomainError(ERROR_CODES.PROVIDER_UNAVAILABLE, 'Unable to load payments.', 502);
+    }
+    const orderPayload = (await orderResponse.json()) as {
+      data: Array<
+        LemonResource<{
+          order_number: number;
+          status: string;
+          total: number;
+          currency: string;
+          created_at: string;
+          first_order_item?: { product_name?: string; variant_name?: string };
+          urls?: { receipt?: string };
+        }>
+      >;
     };
-
-    const invoices = invoicePayload.data.map((invoice) => ({
-      id: invoice.id,
-      number: invoice.number ?? invoice.id,
-      label: invoice.description ?? 'Nexiora payment',
-      status: invoice.status,
-      amountPaid: invoice.amount_paid,
-      currency: invoice.currency,
-      createdAt: new Date(invoice.created * 1000).toISOString(),
-      hostedUrl: invoice.hosted_invoice_url,
-      pdfUrl: invoice.invoice_pdf,
-      kind: 'invoice' as 'invoice' | 'receipt',
+    const invoices: BillingInvoice[] = orderPayload.data.map((order) => ({
+      id: `order_${order.id}`,
+      number: String(order.attributes.order_number ?? order.id),
+      label: order.attributes.first_order_item?.product_name ?? 'Nexiora payment',
+      status: order.attributes.status,
+      amountPaid: order.attributes.total,
+      currency: order.attributes.currency,
+      createdAt: order.attributes.created_at,
+      hostedUrl: order.attributes.urls?.receipt ?? null,
+      pdfUrl: null,
+      kind: 'receipt' as const,
     }));
 
-    // Fallback/supplement: card receipts for any paid charge not yet represented as invoice.
-    if (chargeResponse.ok) {
-      const chargePayload = (await chargeResponse.json()) as {
-        data: Array<{
-          id: string;
-          amount: number;
-          currency: string;
-          created: number;
-          status: string;
-          paid: boolean;
-          receipt_url: string | null;
-          description: string | null;
-          invoice: string | null;
-        }>;
-      };
-      for (const charge of chargePayload.data) {
-        if (!charge.paid || charge.invoice) continue;
-        if (invoices.some((invoice) => invoice.id === charge.id)) continue;
-        invoices.push({
-          id: charge.id,
-          number: charge.id,
-          label: charge.description ?? 'Nexiora payment receipt',
-          status: charge.status,
-          amountPaid: charge.amount,
-          currency: charge.currency,
-          createdAt: new Date(charge.created * 1000).toISOString(),
-          hostedUrl: charge.receipt_url,
-          pdfUrl: charge.receipt_url,
-          kind: 'receipt' as const,
-        });
+    if (subscription?.externalSubscriptionId) {
+      const filters = new URLSearchParams({
+        'filter[subscription_id]': subscription.externalSubscriptionId,
+        'page[size]': '24',
+      });
+      const invoiceResponse = await this.lemonRequest(
+        `/subscription-invoices?${filters.toString()}`,
+      );
+      if (invoiceResponse.ok) {
+        const payload = (await invoiceResponse.json()) as {
+          data: Array<
+            LemonResource<{
+              status: string;
+              total: number;
+              currency: string;
+              created_at: string;
+              urls?: { invoice_url?: string };
+            }>
+          >;
+        };
+        for (const invoice of payload.data) {
+          invoices.push({
+            id: `invoice_${invoice.id}`,
+            number: invoice.id,
+            label: 'Nexiora subscription payment',
+            status: invoice.attributes.status,
+            amountPaid: invoice.attributes.total,
+            currency: invoice.attributes.currency,
+            createdAt: invoice.attributes.created_at,
+            hostedUrl: invoice.attributes.urls?.invoice_url ?? null,
+            pdfUrl: null,
+            kind: 'invoice' as const,
+          });
+        }
       }
     }
 
@@ -265,192 +277,180 @@ export class BillingService implements OnModuleInit {
     return { configured: true, invoices };
   }
 
-  private async ensureStripeCustomer(userId: string): Promise<string> {
-    const existing = await this.prisma.subscription.findUnique({ where: { userId } });
-    if (existing?.stripeCustomerId) return existing.stripeCustomerId;
-
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user?.email) {
+  async createPortal(userId: string) {
+    const subscription = await this.prisma.subscription.findUnique({ where: { userId } });
+    if (!this.config.lemonSqueezyApiKey || !subscription?.externalSubscriptionId) {
       throw new DomainError(
         ERROR_CODES.VALIDATION_ERROR,
-        'User email is required for checkout',
+        'No Lemon Squeezy subscription is available yet.',
         400,
       );
     }
-
-    const response = await this.stripeRequest(
-      '/customers',
-      new URLSearchParams({
-        email: user.email,
-        name: user.displayName ?? user.email,
-        'metadata[userId]': userId,
-      }),
+    const response = await this.lemonRequest(
+      `/subscriptions/${encodeURIComponent(subscription.externalSubscriptionId)}`,
     );
     if (!response.ok) {
-      const text = await response.text();
-      this.logger.error(`Stripe customer create failed: ${text}`);
-      throw new DomainError(
-        ERROR_CODES.PROVIDER_UNAVAILABLE,
-        'Unable to create billing customer',
-        502,
-      );
+      throw new DomainError(ERROR_CODES.PROVIDER_UNAVAILABLE, 'Unable to open billing portal.', 502);
     }
-    const customer = (await response.json()) as { id: string };
+    const payload = (await response.json()) as {
+      data: LemonResource<{ urls?: { customer_portal?: string } }>;
+    };
+    const url = payload.data.attributes.urls?.customer_portal;
+    if (!url) {
+      throw new DomainError(ERROR_CODES.PROVIDER_UNAVAILABLE, 'Billing portal is unavailable.', 502);
+    }
+    return { url };
+  }
 
+  async handleWebhook(
+    rawBody: Buffer,
+    signature: string | undefined,
+    headerEventName?: string,
+  ) {
+    verifyLemonSignature(rawBody, signature, this.config.lemonSqueezyWebhookSecret);
+    let payload: LemonWebhookPayload;
+    try {
+      payload = JSON.parse(rawBody.toString('utf8')) as LemonWebhookPayload;
+    } catch {
+      throw new DomainError(ERROR_CODES.VALIDATION_ERROR, 'Invalid webhook payload.', 400);
+    }
+    const eventName = headerEventName ?? payload.meta?.event_name ?? '';
+    if (!eventName || !payload.data?.id) {
+      throw new DomainError(ERROR_CODES.VALIDATION_ERROR, 'Invalid webhook event.', 400);
+    }
+    const eventKey = createHash('sha256')
+      .update(`${eventName}:`)
+      .update(rawBody)
+      .digest('hex');
+    const duplicate = await this.prisma.billingWebhookEvent.findUnique({ where: { eventKey } });
+    if (duplicate) return { received: true, duplicate: true };
+
+    if (eventName === 'order_created' || eventName === 'order_refunded') {
+      await this.syncOrderEvent(eventName, payload);
+    } else if (eventName.startsWith('subscription_') && payload.data.type === 'subscriptions') {
+      await this.syncSubscriptionEvent(payload);
+    }
+
+    try {
+      await this.prisma.billingWebhookEvent.create({
+        data: {
+          provider: 'lemonsqueezy',
+          eventKey,
+          eventName,
+          resourceId: payload.data.id,
+          payload: payload as unknown as Prisma.InputJsonValue,
+        },
+      });
+    } catch (error) {
+      if ((error as { code?: string }).code !== 'P2002') throw error;
+    }
+    return { received: true };
+  }
+
+  private async syncOrderEvent(eventName: string, payload: LemonWebhookPayload) {
+    const custom = payload.meta?.custom_data;
+    const userId = String(custom?.user_id ?? '');
+    const planId = normalizePlanId(custom?.plan_id);
+    if (!userId || planId !== 'free') return;
+    const attributes = payload.data.attributes;
+    const customerId = String(attributes.customer_id ?? '') || null;
+    const status = eventName === 'order_refunded' ? 'refunded' : 'active';
+    const firstItem = attributes.first_order_item as { variant_id?: number | string } | undefined;
     await this.prisma.subscription.upsert({
       where: { userId },
       create: {
         userId,
         planId: 'free',
-        status: 'unpaid',
-        stripeCustomerId: customer.id,
+        provider: 'lemonsqueezy',
+        status,
+        externalCustomerId: customerId,
+        externalOrderId: payload.data.id,
+        variantId: String(firstItem?.variant_id ?? '') || null,
       },
       update: {
-        stripeCustomerId: customer.id,
+        planId: 'free',
+        provider: 'lemonsqueezy',
+        status,
+        externalCustomerId: customerId,
+        externalOrderId: payload.data.id,
+        externalSubscriptionId: null,
+        currentPeriodEnd: null,
       },
     });
-
-    return customer.id;
   }
 
-  private async resolveStripeCustomerId(userId: string): Promise<string | null> {
-    const existing = await this.prisma.subscription.findUnique({ where: { userId } });
-    return existing?.stripeCustomerId ?? null;
-  }
-
-  async createPortal(userId: string) {
-    const subscription = await this.prisma.subscription.findUnique({ where: { userId } });
-    if (!this.config.stripeSecretKey || !subscription?.stripeCustomerId) {
-      throw new DomainError(
-        ERROR_CODES.VALIDATION_ERROR,
-        'No Stripe billing account is available yet.',
-        400,
-      );
+  private async syncSubscriptionEvent(payload: LemonWebhookPayload) {
+    const custom = payload.meta?.custom_data;
+    const attributes = payload.data.attributes;
+    const userId = String(custom?.user_id ?? '');
+    const customerId = String(attributes.customer_id ?? '') || null;
+    const subscriptionId = payload.data.id;
+    const existing = userId
+      ? await this.prisma.subscription.findUnique({ where: { userId } })
+      : await this.prisma.subscription.findFirst({
+          where: {
+            OR: [
+              { externalSubscriptionId: subscriptionId },
+              ...(customerId ? [{ externalCustomerId: customerId }] : []),
+            ],
+          },
+        });
+    const resolvedUserId = userId || existing?.userId;
+    if (!resolvedUserId) {
+      this.logger.warn(`Ignoring unlinked Lemon Squeezy subscription ${subscriptionId}`);
+      return;
     }
-    const response = await this.stripeRequest(
-      '/billing_portal/sessions',
-      new URLSearchParams({
-        customer: subscription.stripeCustomerId,
-        return_url: `${this.config.publicWebUrl}/settings/subscription`,
-      }),
-    );
-    if (!response.ok) {
-      throw new DomainError(ERROR_CODES.PROVIDER_UNAVAILABLE, 'Unable to open billing portal', 502);
-    }
-    const portal = (await response.json()) as { url: string };
-    return portal;
-  }
-
-  async handleWebhook(rawBody: Buffer, signature: string | undefined) {
-    this.verifyWebhook(rawBody, signature);
-    const event = JSON.parse(rawBody.toString('utf8')) as {
-      type: string;
-      data: { object: Record<string, unknown> };
-    };
-    const object = event.data.object;
-
-    if (event.type === 'checkout.session.completed' || event.type === 'invoice.paid') {
-      if (event.type === 'checkout.session.completed') {
-        const userId = String(object.client_reference_id ?? '');
-        const metadata = (object.metadata ?? {}) as Record<string, string>;
-        const planId = this.normalizePlanId(metadata.planId);
-        if (userId) {
-          await this.prisma.subscription.upsert({
-            where: { userId },
-            create: {
-              userId,
-              planId,
-              status: 'active',
-              stripeCustomerId: String(object.customer ?? '') || null,
-              stripeSubId: String(object.subscription ?? '') || null,
-            },
-            update: {
-              planId,
-              status: 'active',
-              stripeCustomerId: String(object.customer ?? '') || undefined,
-              stripeSubId: String(object.subscription ?? '') || undefined,
-            },
-          });
-        }
-      }
-    }
-
-    if (event.type.startsWith('customer.subscription.')) {
-      await this.syncSubscriptionEvent(object);
-    }
-
-    return { received: true };
-  }
-
-  private normalizePlanId(value: string | undefined): 'free' | 'pro' | 'business' {
-    if (value === 'business' || value === 'pro' || value === 'free') return value;
-    return 'free';
-  }
-
-  private async syncSubscriptionEvent(object: Record<string, unknown>) {
-    const customerId = String(object.customer ?? '');
-    const metadata = (object.metadata ?? {}) as Record<string, string>;
-    const items = object.items as { data?: Array<{ price?: { id?: string } }> } | undefined;
-    const priceId = items?.data?.[0]?.price?.id;
-    const planId =
-      metadata.planId === 'business' || priceId === this.config.stripePriceBusiness
-        ? 'business'
-        : metadata.planId === 'free' || priceId === this.config.stripePriceFree
-          ? 'free'
-          : 'pro';
-    const currentPeriodEnd =
-      typeof object.current_period_end === 'number'
-        ? new Date(object.current_period_end * 1000)
-        : null;
-    const existing = metadata.userId
-      ? await this.prisma.subscription.findUnique({ where: { userId: metadata.userId } })
-      : await this.prisma.subscription.findUnique({ where: { stripeCustomerId: customerId } });
-    if (!existing) return;
-
-    await this.prisma.subscription.update({
-      where: { id: existing.id },
-      data: {
+    const variantId = String(attributes.variant_id ?? '');
+    const planId = normalizePlanId(custom?.plan_id) ?? this.planIdForVariant(variantId);
+    const periodEnd = parseDate(attributes.ends_at ?? attributes.renews_at);
+    const status = normalizeLemonStatus(String(attributes.status ?? 'inactive'));
+    await this.prisma.subscription.upsert({
+      where: { userId: resolvedUserId },
+      create: {
+        userId: resolvedUserId,
         planId,
-        status: String(object.status ?? 'inactive'),
-        stripeCustomerId: customerId,
-        stripeSubId: String(object.id ?? existing.stripeSubId ?? ''),
-        currentPeriodEnd,
+        provider: 'lemonsqueezy',
+        status,
+        externalCustomerId: customerId,
+        externalSubscriptionId: subscriptionId,
+        externalOrderId: String(attributes.order_id ?? '') || null,
+        variantId: variantId || null,
+        currentPeriodEnd: periodEnd,
+      },
+      update: {
+        planId,
+        provider: 'lemonsqueezy',
+        status,
+        externalCustomerId: customerId,
+        externalSubscriptionId: subscriptionId,
+        externalOrderId: String(attributes.order_id ?? '') || undefined,
+        variantId: variantId || undefined,
+        currentPeriodEnd: periodEnd,
       },
     });
   }
 
-  private verifyWebhook(rawBody: Buffer, signature: string | undefined) {
-    const secret = this.config.stripeWebhookSecret;
-    if (!secret || !signature) {
-      throw new DomainError(ERROR_CODES.FORBIDDEN, 'Invalid Stripe webhook signature', 401);
-    }
-    const parts = Object.fromEntries(signature.split(',').map((part) => part.split('=', 2)));
-    const timestamp = parts.t;
-    const received = parts.v1;
-    if (!timestamp || !received) {
-      throw new DomainError(ERROR_CODES.FORBIDDEN, 'Invalid Stripe webhook signature', 401);
-    }
-    const expected = createHmac('sha256', secret)
-      .update(`${timestamp}.${rawBody.toString('utf8')}`)
-      .digest('hex');
-    const expectedBuffer = Buffer.from(expected);
-    const receivedBuffer = Buffer.from(received);
-    if (
-      expectedBuffer.length !== receivedBuffer.length ||
-      !timingSafeEqual(expectedBuffer, receivedBuffer)
-    ) {
-      throw new DomainError(ERROR_CODES.FORBIDDEN, 'Invalid Stripe webhook signature', 401);
-    }
+  private variantIdForPlan(planId: CheckoutPlanId): string {
+    if (planId === 'free') return this.config.lemonSqueezyVariantFree;
+    if (planId === 'pro') return this.config.lemonSqueezyVariantPro;
+    return this.config.lemonSqueezyVariantBusiness;
   }
 
-  private stripeRequest(path: string, body?: URLSearchParams) {
-    return fetch(`https://api.stripe.com/v1${path}`, {
-      method: body ? 'POST' : 'GET',
+  private planIdForVariant(variantId: string): CheckoutPlanId {
+    if (variantId === this.config.lemonSqueezyVariantBusiness) return 'business';
+    if (variantId === this.config.lemonSqueezyVariantFree) return 'free';
+    return 'pro';
+  }
+
+  private lemonRequest(path: string, init?: RequestInit) {
+    return fetch(`https://api.lemonsqueezy.com/v1${path}`, {
+      ...init,
       headers: {
-        Authorization: `Bearer ${this.config.stripeSecretKey}`,
-        ...(body ? { 'Content-Type': 'application/x-www-form-urlencoded' } : {}),
+        Accept: 'application/vnd.api+json',
+        'Content-Type': 'application/vnd.api+json',
+        Authorization: `Bearer ${this.config.lemonSqueezyApiKey}`,
+        ...init?.headers,
       },
-      body,
     });
   }
 
@@ -468,11 +468,13 @@ export class BillingService implements OnModuleInit {
             name: plan.name,
             monthlyPriceCents: plan.monthlyPriceCents,
             entitlements: plan.entitlements as unknown as Prisma.InputJsonValue,
+            lemonSqueezyVariantId: this.variantIdForPlan(plan.id as CheckoutPlanId),
           },
           update: {
             name: plan.name,
             monthlyPriceCents: plan.monthlyPriceCents,
             entitlements: plan.entitlements as unknown as Prisma.InputJsonValue,
+            lemonSqueezyVariantId: this.variantIdForPlan(plan.id as CheckoutPlanId),
           },
         });
       }
@@ -482,10 +484,69 @@ export class BillingService implements OnModuleInit {
   }
 }
 
-function stripeErrorMessage(raw: string, fallback: string): string {
+export function isCheckoutPlanId(value: unknown): value is CheckoutPlanId {
+  return value === 'free' || value === 'pro' || value === 'business';
+}
+
+function normalizePlanId(value: unknown): CheckoutPlanId | null {
+  return isCheckoutPlanId(value) ? value : null;
+}
+
+export function normalizeLemonStatus(status: string): string {
+  if (status === 'on_trial') return 'trialing';
+  if (
+    status === 'active' ||
+    status === 'paused' ||
+    status === 'past_due' ||
+    status === 'unpaid' ||
+    status === 'cancelled' ||
+    status === 'expired'
+  ) {
+    return status;
+  }
+  return 'inactive';
+}
+
+export function hasActiveBillingStatus(status: string, periodEnd?: Date | null): boolean {
+  if (status === 'active' || status === 'trialing') return true;
+  return status === 'cancelled' && Boolean(periodEnd && periodEnd.getTime() > Date.now());
+}
+
+export function verifyLemonSignature(
+  rawBody: Buffer,
+  signature: string | undefined,
+  secret: string,
+): void {
+  if (!secret || !signature) {
+    throw new DomainError(
+      ERROR_CODES.FORBIDDEN,
+      'Invalid Lemon Squeezy webhook signature.',
+      401,
+    );
+  }
+  const expected = Buffer.from(createHmac('sha256', secret).update(rawBody).digest('hex'), 'utf8');
+  const received = Buffer.from(signature, 'utf8');
+  if (expected.length !== received.length || !timingSafeEqual(expected, received)) {
+    throw new DomainError(
+      ERROR_CODES.FORBIDDEN,
+      'Invalid Lemon Squeezy webhook signature.',
+      401,
+    );
+  }
+}
+
+function parseDate(value: unknown): Date | null {
+  if (typeof value !== 'string' || !value) return null;
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function lemonErrorMessage(raw: string, fallback: string): string {
   try {
-    const parsed = JSON.parse(raw) as { error?: { message?: string; code?: string } };
-    const message = parsed.error?.message?.trim();
+    const parsed = JSON.parse(raw) as {
+      errors?: Array<{ detail?: string; title?: string }>;
+    };
+    const message = parsed.errors?.[0]?.detail?.trim() || parsed.errors?.[0]?.title?.trim();
     if (message) return message;
   } catch {
     /* ignore */
