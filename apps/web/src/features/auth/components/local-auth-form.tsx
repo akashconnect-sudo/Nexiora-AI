@@ -17,6 +17,14 @@ function safeNextPath(raw: string | null): string {
   return raw;
 }
 
+function errorMessage(body: Record<string, unknown>, fallback: string): string {
+  for (const key of ['detail', 'message', 'title', 'error'] as const) {
+    const value = body[key];
+    if (typeof value === 'string' && value.trim()) return value;
+  }
+  return fallback;
+}
+
 /**
  * Email OTP login that works without Clerk.
  * Codes are emailed when Resend/SMTP is configured; otherwise a local fallback appears.
@@ -43,12 +51,13 @@ export function LocalAuthForm({ mode }: LocalAuthFormProps) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
+        signal: AbortSignal.timeout(45_000),
       });
-      const body = await res.json();
+      const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
       if (!res.ok) {
-        throw new Error(body.detail ?? body.title ?? 'Could not send code');
+        throw new Error(errorMessage(body, 'Could not send code'));
       }
-      setChallengeId(body.challengeId);
+      setChallengeId(String(body.challengeId ?? ''));
       setDelivery(body.delivery === 'email' ? 'email' : 'dev_inbox');
       setDevCode(typeof body.devCode === 'string' ? body.devCode : null);
       setStatusMessage(typeof body.message === 'string' ? body.message : null);
@@ -69,15 +78,21 @@ export function LocalAuthForm({ mode }: LocalAuthFormProps) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ challengeId, code }),
+        signal: AbortSignal.timeout(45_000),
       });
-      const body = await res.json();
+      const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
       if (!res.ok) {
-        throw new Error(body.detail ?? body.title ?? 'Could not verify code');
+        throw new Error(errorMessage(body, 'Could not verify code'));
       }
-      setSession(body.accessToken, {
-        id: body.user.id,
-        email: body.user.email,
-        displayName: body.user.displayName,
+      const user = body.user as {
+        id: string;
+        email: string;
+        displayName: string;
+      };
+      setSession(String(body.accessToken ?? ''), {
+        id: user.id,
+        email: user.email,
+        displayName: user.displayName,
       });
       // Always land on billing after login so unpaid users activate Free ($2).
       router.push('/settings/subscription');

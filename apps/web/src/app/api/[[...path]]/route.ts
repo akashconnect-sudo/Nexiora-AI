@@ -1,7 +1,6 @@
 import { EventEmitter } from 'node:events';
-import { existsSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { join } from 'node:path';
-import { pathToFileURL } from 'node:url';
 import { createRequest, createResponse } from 'node-mocks-http';
 
 export const runtime = 'nodejs';
@@ -12,37 +11,38 @@ type ExpressApp = {
   (req: unknown, res: unknown, next?: (err?: unknown) => void): void;
 };
 
-type NestCreateApp = {
-  createNexioraApp: () => Promise<{ express: ExpressApp }>;
+type NestLoader = {
+  loadNexioraExpress: () => Promise<ExpressApp>;
 };
 
 let cachedExpress: ExpressApp | undefined;
 let bootstrapPromise: Promise<ExpressApp> | undefined;
 
-function resolveCreateAppPath(): string {
+function loadNestLoader(): NestLoader {
+  const require = createRequire(join(process.cwd(), 'package.json'));
   const candidates = [
-    join(process.cwd(), 'nest-dist', 'bootstrap', 'create-app.js'),
-    join(process.cwd(), '..', 'api', 'dist', 'bootstrap', 'create-app.js'),
+    join(process.cwd(), 'nest-loader.cjs'),
+    join(process.cwd(), 'apps', 'web', 'nest-loader.cjs'),
   ];
-  const found = candidates.find((file) => existsSync(file));
-  if (!found) {
-    throw new Error(
-      `Nest create-app missing. Looked for: ${candidates.join(' | ')}. Ensure @nexiora/api build + nest-dist copy ran.`,
-    );
+  let lastError: unknown;
+  for (const file of candidates) {
+    try {
+      return require(file) as NestLoader;
+    } catch (error) {
+      lastError = error;
+    }
   }
-  return found;
+  throw lastError instanceof Error
+    ? lastError
+    : new Error(`nest-loader.cjs not found under ${process.cwd()}`);
 }
 
 async function getExpress(): Promise<ExpressApp> {
   if (cachedExpress) return cachedExpress;
   if (!bootstrapPromise) {
     bootstrapPromise = (async () => {
-      const file = resolveCreateAppPath();
-      const mod = (await import(pathToFileURL(file).href)) as NestCreateApp;
-      if (typeof mod.createNexioraApp !== 'function') {
-        throw new Error(`createNexioraApp missing in ${file}`);
-      }
-      const { express } = await mod.createNexioraApp();
+      const loader = loadNestLoader();
+      const express = await loader.loadNexioraExpress();
       cachedExpress = express;
       return express;
     })().catch((error) => {

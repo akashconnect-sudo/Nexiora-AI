@@ -17,6 +17,8 @@ function run(cmd) {
 run('pnpm --filter @nexiora/shared build');
 run('pnpm --filter @nexiora/search-core build');
 run('pnpm --filter @nexiora/api exec prisma generate');
+// Same schema for web's @prisma/client (Nest-in-Next runtime).
+run('pnpm --filter @nexiora/web exec prisma generate --schema ../api/prisma/schema.prisma');
 run('pnpm --filter @nexiora/api build');
 
 const from = join(root, 'apps/api/dist');

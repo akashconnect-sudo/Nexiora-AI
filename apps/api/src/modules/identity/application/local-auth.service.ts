@@ -1,4 +1,4 @@
-import { createHmac, randomInt, randomUUID, timingSafeEqual } from 'node:crypto';
+import { createHmac, randomInt, timingSafeEqual } from 'node:crypto';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { SignJWT, jwtVerify } from 'jose';
 import { ERROR_CODES } from '@nexiora/shared';
@@ -9,21 +9,14 @@ import { USER_DIRECTORY_PORT } from './ports/user-directory.port';
 import type { AuthPrincipal } from './ports/identity-provider.port';
 import { OtpMailerAdapter } from '../infrastructure/otp-mailer.adapter';
 
-interface Challenge {
-  email: string;
-  codeHash: string;
-  expiresAt: number;
-  attempts: number;
-}
-
 /**
  * Email OTP local auth for environments without Clerk.
+ * Challenge ids are signed JWTs so verify works across serverless instances.
  * When Resend/SMTP is configured, codes are emailed and never returned to the client.
  */
 @Injectable()
 export class LocalAuthService {
   private readonly logger = new Logger(LocalAuthService.name);
-  private readonly challenges = new Map<string, Challenge>();
 
   constructor(
     private readonly config: AppConfigService,
@@ -44,20 +37,23 @@ export class LocalAuthService {
     }
 
     const code = String(randomInt(100000, 999999));
-    const challengeId = randomUUID();
     const expiresInSec = 10 * 60;
-
-    this.challenges.set(challengeId, {
+    const challengeId = await new SignJWT({
+      typ: 'nexiora_otp',
       email,
       codeHash: hashCode(code, this.config.authJwtSecret),
-      expiresAt: Date.now() + expiresInSec * 1000,
-      attempts: 0,
-    });
+    })
+      .setProtectedHeader({ alg: 'HS256' })
+      .setIssuer('nexiora-local')
+      .setAudience('nexiora-otp')
+      .setIssuedAt()
+      .setExpirationTime(`${expiresInSec}s`)
+      .sign(this.secretKey());
 
     if (this.mailer.isConfigured) {
       try {
         await this.mailer.sendLoginCode(email, code);
-        this.logger.log(`OTP emailed to ${email} (challenge ${challengeId})`);
+        this.logger.log(`OTP emailed to ${email}`);
         return {
           challengeId,
           expiresInSec,
@@ -65,7 +61,6 @@ export class LocalAuthService {
           message: `We sent a 6-digit code to ${email}.`,
         };
       } catch (error) {
-        this.challenges.delete(challengeId);
         this.logger.error(`OTP email failed for ${email}: ${(error as Error).message}`);
         throw new DomainError(
           ERROR_CODES.PROVIDER_UNAVAILABLE,
@@ -94,39 +89,39 @@ export class LocalAuthService {
     expiresInSec: number;
     user: AppUser;
   }> {
-    const challenge = this.challenges.get(challengeId);
-    if (!challenge) {
+    let email: string;
+    let codeHash: string;
+    try {
+      const { payload } = await jwtVerify(challengeId, this.secretKey(), {
+        issuer: 'nexiora-local',
+        audience: 'nexiora-otp',
+      });
+      if (
+        payload.typ !== 'nexiora_otp' ||
+        typeof payload.email !== 'string' ||
+        typeof payload.codeHash !== 'string'
+      ) {
+        throw new Error('invalid otp challenge');
+      }
+      email = payload.email;
+      codeHash = payload.codeHash;
+    } catch {
       throw new DomainError(
         ERROR_CODES.UNAUTHORIZED,
         'Code expired or invalid. Request a new one.',
         401,
       );
     }
-    if (challenge.expiresAt < Date.now()) {
-      this.challenges.delete(challengeId);
-      throw new DomainError(ERROR_CODES.UNAUTHORIZED, 'Code expired. Request a new one.', 401);
-    }
-    if (challenge.attempts >= 5) {
-      this.challenges.delete(challengeId);
-      throw new DomainError(
-        ERROR_CODES.RATE_LIMITED,
-        'Too many attempts. Request a new code.',
-        429,
-      );
-    }
 
-    challenge.attempts += 1;
     const incoming = hashCode(String(codeRaw).trim(), this.config.authJwtSecret);
-    if (!safeEqual(incoming, challenge.codeHash)) {
+    if (!safeEqual(incoming, codeHash)) {
       throw new DomainError(ERROR_CODES.UNAUTHORIZED, 'Incorrect code', 401);
     }
 
-    this.challenges.delete(challengeId);
-
     const principal: AuthPrincipal = {
-      subjectId: `local_${challenge.email}`,
-      email: challenge.email,
-      displayName: challenge.email.split('@')[0] ?? challenge.email,
+      subjectId: `local_${email}`,
+      email,
+      displayName: email.split('@')[0] ?? email,
       avatarUrl: null,
       emailVerified: true,
     };

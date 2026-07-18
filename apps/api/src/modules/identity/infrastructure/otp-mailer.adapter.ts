@@ -75,18 +75,25 @@ export class OtpMailerAdapter {
       host: this.config.smtpHost,
       port: this.config.smtpPort,
       secure: this.config.smtpSecure,
+      connectionTimeout: 12_000,
+      greetingTimeout: 12_000,
+      socketTimeout: 20_000,
       auth: {
         user: this.config.smtpUser,
         pass: this.config.smtpPass,
       },
     });
 
-    await transporter.sendMail({
-      from: this.config.emailFrom || this.config.smtpUser,
-      to: email,
-      subject,
-      text,
-      html,
-    });
+    try {
+      await transporter.sendMail({
+        from: this.config.emailFrom || this.config.smtpUser,
+        to: email,
+        subject,
+        text,
+        html,
+      });
+    } finally {
+      transporter.close();
+    }
   }
 }
