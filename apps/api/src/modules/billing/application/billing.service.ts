@@ -8,18 +8,33 @@ import { DomainError } from '../../../common/errors/domain-error';
 
 export type CheckoutPlanId = 'free' | 'pro' | 'business';
 
-type LemonResource<T extends Record<string, unknown>> = {
-  type: string;
+type RazorpayOrder = {
   id: string;
-  attributes: T;
+  amount: number;
+  currency: string;
+  status: string;
+  receipt?: string;
+  notes?: Record<string, string>;
 };
 
-type LemonWebhookPayload = {
-  meta?: {
-    event_name?: string;
-    custom_data?: Record<string, unknown>;
+type RazorpayPayment = {
+  id: string;
+  order_id: string;
+  amount: number;
+  currency: string;
+  status: string;
+  email?: string;
+  contact?: string;
+  notes?: Record<string, string>;
+  created_at?: number;
+};
+
+type RazorpayWebhookPayload = {
+  event?: string;
+  payload?: {
+    payment?: { entity?: RazorpayPayment };
+    order?: { entity?: RazorpayOrder };
   };
-  data: LemonResource<Record<string, unknown>>;
 };
 
 type BillingInvoice = {
@@ -33,6 +48,13 @@ type BillingInvoice = {
   hostedUrl: string | null;
   pdfUrl: string | null;
   kind: 'invoice' | 'receipt';
+};
+
+/** Amounts in paise (INR). Free activation follows activationFeeInr; Pro/Business use monthlyPriceCents as rupees×100. */
+const PLAN_AMOUNT_PAISE: Record<CheckoutPlanId, number> = {
+  free: 200,
+  pro: 200_000,
+  business: 800_000,
 };
 
 @Injectable()
@@ -113,24 +135,16 @@ export class BillingService implements OnModuleInit {
       throw new DomainError(ERROR_CODES.VALIDATION_ERROR, 'Invalid billing plan.', 400);
     }
     const planId = requestedPlanId;
-    if (!this.config.lemonSqueezyApiKey || !this.config.lemonSqueezyStoreId) {
+    if (!this.config.razorpayKeyId || !this.config.razorpayKeySecret) {
       return {
         mode: 'manual',
         message:
-          'Lemon Squeezy is not configured. Set LEMON_SQUEEZY_API_KEY and LEMON_SQUEEZY_STORE_ID.',
+          'Razorpay is not configured. Set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET.',
         planId,
         userId,
       };
     }
 
-    const variantId = this.variantIdForPlan(planId);
-    if (!variantId) {
-      throw new DomainError(
-        ERROR_CODES.VALIDATION_ERROR,
-        `No Lemon Squeezy variant for ${planId}. Set LEMON_SQUEEZY_VARIANT_${planId.toUpperCase()}.`,
-        400,
-      );
-    }
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user?.email) {
       throw new DomainError(
@@ -140,182 +154,162 @@ export class BillingService implements OnModuleInit {
       );
     }
 
-    const response = await this.lemonRequest('/checkouts', {
+    const amount = PLAN_AMOUNT_PAISE[planId];
+    const receipt = `nx_${planId}_${userId.replace(/-/g, '').slice(0, 12)}_${Date.now()
+      .toString(36)
+      .slice(-6)}`.slice(0, 40);
+    const response = await this.razorpayRequest('/orders', {
       method: 'POST',
       body: JSON.stringify({
-        data: {
-          type: 'checkouts',
-          attributes: {
-            product_options: {
-              redirect_url: `${this.config.publicWebUrl}/settings/subscription?checkout=success`,
-              enabled_variants: [Number(variantId)],
-              receipt_button_text: 'Return to Nexiora AI',
-              receipt_link_url: `${this.config.publicWebUrl}/settings/subscription`,
-            },
-            checkout_options: {
-              embed: false,
-              logo: true,
-              media: true,
-              discount: planId !== 'free',
-            },
-            checkout_data: {
-              email: user.email,
-              name: user.displayName ?? user.email,
-              custom: {
-                user_id: userId,
-                plan_id: planId,
-              },
-            },
-            test_mode: this.config.lemonSqueezyTestMode,
-          },
-          relationships: {
-            store: { data: { type: 'stores', id: this.config.lemonSqueezyStoreId } },
-            variant: { data: { type: 'variants', id: variantId } },
-          },
+        amount,
+        currency: 'INR',
+        receipt,
+        notes: {
+          user_id: userId,
+          plan_id: planId,
         },
       }),
     });
     if (!response.ok) {
       const text = await response.text();
-      this.logger.error(`Lemon Squeezy checkout failed: ${text}`);
+      this.logger.error(`Razorpay order failed: ${text}`);
       throw new DomainError(
         ERROR_CODES.PROVIDER_UNAVAILABLE,
-        lemonErrorMessage(text, 'Unable to create checkout.'),
+        razorpayErrorMessage(text, 'Unable to create checkout.'),
         502,
       );
     }
-    const checkout = (await response.json()) as {
-      data: LemonResource<{ url: string }>;
+    const order = (await response.json()) as RazorpayOrder;
+    const plan = this.listPlans().find((item) => item.id === planId)!;
+    return {
+      mode: 'razorpay',
+      keyId: this.config.razorpayKeyId,
+      orderId: order.id,
+      amount: order.amount,
+      currency: order.currency,
+      planId,
+      name: 'Nexiora AI',
+      description: planId === 'free' ? 'Free plan activation' : `${plan.name} plan`,
+      prefill: {
+        email: user.email,
+        name: user.displayName ?? user.email,
+      },
+      callbackUrl: `${this.config.publicWebUrl}/settings/subscription?checkout=success`,
     };
-    return { mode: 'lemonsqueezy', id: checkout.data.id, url: checkout.data.attributes.url };
   }
 
-  async listInvoices(userId: string) {
-    if (!this.config.lemonSqueezyApiKey) {
-      return { configured: false, invoices: [] };
+  async verifyPayment(
+    userId: string,
+    body: {
+      razorpay_order_id?: unknown;
+      razorpay_payment_id?: unknown;
+      razorpay_signature?: unknown;
+      planId?: unknown;
+    },
+  ) {
+    const orderId = typeof body.razorpay_order_id === 'string' ? body.razorpay_order_id : '';
+    const paymentId = typeof body.razorpay_payment_id === 'string' ? body.razorpay_payment_id : '';
+    const signature = typeof body.razorpay_signature === 'string' ? body.razorpay_signature : '';
+    if (!orderId || !paymentId || !signature) {
+      throw new DomainError(ERROR_CODES.VALIDATION_ERROR, 'Missing Razorpay payment fields.', 400);
     }
-    const [subscription, user] = await Promise.all([
-      this.prisma.subscription.findUnique({ where: { userId } }),
-      this.prisma.user.findUnique({ where: { id: userId } }),
-    ]);
-    if (!user?.email) return { configured: true, invoices: [] };
+    verifyRazorpayPaymentSignature(
+      orderId,
+      paymentId,
+      signature,
+      this.config.razorpayKeySecret,
+    );
 
-    const orderFilters = new URLSearchParams({ 'page[size]': '24' });
-    if (subscription?.externalCustomerId) {
-      orderFilters.set('filter[customer_id]', subscription.externalCustomerId);
-    } else {
-      orderFilters.set('filter[user_email]', user.email);
+    const paymentResponse = await this.razorpayRequest(`/payments/${encodeURIComponent(paymentId)}`);
+    if (!paymentResponse.ok) {
+      throw new DomainError(ERROR_CODES.PROVIDER_UNAVAILABLE, 'Unable to verify payment.', 502);
     }
-    const orderResponse = await this.lemonRequest(`/orders?${orderFilters.toString()}`);
-    if (!orderResponse.ok) {
-      throw new DomainError(ERROR_CODES.PROVIDER_UNAVAILABLE, 'Unable to load payments.', 502);
+    const payment = (await paymentResponse.json()) as RazorpayPayment;
+    if (payment.order_id !== orderId) {
+      throw new DomainError(ERROR_CODES.VALIDATION_ERROR, 'Payment order mismatch.', 400);
     }
-    const orderPayload = (await orderResponse.json()) as {
-      data: Array<
-        LemonResource<{
-          order_number: number;
-          status: string;
-          total: number;
-          currency: string;
-          created_at: string;
-          first_order_item?: { product_name?: string; variant_name?: string };
-          urls?: { receipt?: string };
-        }>
-      >;
-    };
-    const invoices: BillingInvoice[] = orderPayload.data.map((order) => ({
-      id: `order_${order.id}`,
-      number: String(order.attributes.order_number ?? order.id),
-      label: order.attributes.first_order_item?.product_name ?? 'Nexiora payment',
-      status: order.attributes.status,
-      amountPaid: order.attributes.total,
-      currency: order.attributes.currency,
-      createdAt: order.attributes.created_at,
-      hostedUrl: order.attributes.urls?.receipt ?? null,
-      pdfUrl: null,
-      kind: 'receipt' as const,
-    }));
-
-    if (subscription?.externalSubscriptionId) {
-      const filters = new URLSearchParams({
-        'filter[subscription_id]': subscription.externalSubscriptionId,
-        'page[size]': '24',
-      });
-      const invoiceResponse = await this.lemonRequest(
-        `/subscription-invoices?${filters.toString()}`,
-      );
-      if (invoiceResponse.ok) {
-        const payload = (await invoiceResponse.json()) as {
-          data: Array<
-            LemonResource<{
-              status: string;
-              total: number;
-              currency: string;
-              created_at: string;
-              urls?: { invoice_url?: string };
-            }>
-          >;
-        };
-        for (const invoice of payload.data) {
-          invoices.push({
-            id: `invoice_${invoice.id}`,
-            number: invoice.id,
-            label: 'Nexiora subscription payment',
-            status: invoice.attributes.status,
-            amountPaid: invoice.attributes.total,
-            currency: invoice.attributes.currency,
-            createdAt: invoice.attributes.created_at,
-            hostedUrl: invoice.attributes.urls?.invoice_url ?? null,
-            pdfUrl: null,
-            kind: 'invoice' as const,
-          });
-        }
-      }
-    }
-
-    invoices.sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt));
-    return { configured: true, invoices };
-  }
-
-  async createPortal(userId: string) {
-    const subscription = await this.prisma.subscription.findUnique({ where: { userId } });
-    if (!this.config.lemonSqueezyApiKey || !subscription?.externalSubscriptionId) {
+    if (payment.status !== 'captured' && payment.status !== 'authorized') {
       throw new DomainError(
         ERROR_CODES.VALIDATION_ERROR,
-        'No Lemon Squeezy subscription is available yet.',
+        `Payment is not complete (${payment.status}).`,
         400,
       );
     }
-    const response = await this.lemonRequest(
-      `/subscriptions/${encodeURIComponent(subscription.externalSubscriptionId)}`,
-    );
-    if (!response.ok) {
-      throw new DomainError(ERROR_CODES.PROVIDER_UNAVAILABLE, 'Unable to open billing portal.', 502);
+
+    const planId =
+      normalizePlanId(body.planId) ??
+      normalizePlanId(payment.notes?.plan_id) ??
+      'free';
+    const notesUserId = payment.notes?.user_id;
+    if (notesUserId && notesUserId !== userId) {
+      throw new DomainError(ERROR_CODES.FORBIDDEN, 'Payment does not belong to this user.', 403);
     }
-    const payload = (await response.json()) as {
-      data: LemonResource<{ urls?: { customer_portal?: string } }>;
-    };
-    const url = payload.data.attributes.urls?.customer_portal;
-    if (!url) {
-      throw new DomainError(ERROR_CODES.PROVIDER_UNAVAILABLE, 'Billing portal is unavailable.', 502);
-    }
-    return { url };
+
+    await this.activateSubscription({
+      userId,
+      planId,
+      orderId,
+      paymentId,
+      customerId: null,
+    });
+
+    return { ok: true, planId, paymentId, orderId };
   }
 
-  async handleWebhook(
-    rawBody: Buffer,
-    signature: string | undefined,
-    headerEventName?: string,
-  ) {
-    verifyLemonSignature(rawBody, signature, this.config.lemonSqueezyWebhookSecret);
-    let payload: LemonWebhookPayload;
+  async listInvoices(userId: string) {
+    if (!this.config.razorpayKeyId || !this.config.razorpayKeySecret) {
+      return { configured: false, invoices: [] };
+    }
+    const subscription = await this.prisma.subscription.findUnique({ where: { userId } });
+    if (!subscription?.externalOrderId) {
+      return { configured: true, invoices: [] };
+    }
+
+    const response = await this.razorpayRequest(
+      `/orders/${encodeURIComponent(subscription.externalOrderId)}/payments`,
+    );
+    if (!response.ok) {
+      this.logger.warn(`Unable to list Razorpay payments for order ${subscription.externalOrderId}`);
+      return { configured: true, invoices: [] };
+    }
+    const payload = (await response.json()) as { items?: RazorpayPayment[] };
+    const invoices: BillingInvoice[] = (payload.items ?? []).map((payment) => ({
+      id: payment.id,
+      number: payment.id,
+      label: 'Nexiora payment',
+      status: payment.status,
+      amountPaid: payment.amount,
+      currency: payment.currency,
+      createdAt: payment.created_at
+        ? new Date(payment.created_at * 1000).toISOString()
+        : new Date().toISOString(),
+      hostedUrl: null,
+      pdfUrl: null,
+      kind: 'receipt' as const,
+    }));
+    return { configured: true, invoices };
+  }
+
+  async createPortal(_userId: string) {
+    throw new DomainError(
+      ERROR_CODES.VALIDATION_ERROR,
+      'Razorpay customer portal is not available. Manage billing from Settings or contact support.',
+      400,
+    );
+  }
+
+  async handleWebhook(rawBody: Buffer, signature: string | undefined, _headerEventName?: string) {
+    verifyRazorpayWebhookSignature(rawBody, signature, this.config.razorpayWebhookSecret);
+    let payload: RazorpayWebhookPayload;
     try {
-      payload = JSON.parse(rawBody.toString('utf8')) as LemonWebhookPayload;
+      payload = JSON.parse(rawBody.toString('utf8')) as RazorpayWebhookPayload;
     } catch {
       throw new DomainError(ERROR_CODES.VALIDATION_ERROR, 'Invalid webhook payload.', 400);
     }
-    const eventName = headerEventName ?? payload.meta?.event_name ?? '';
-    if (!eventName || !payload.data?.id) {
+    const eventName = payload.event ?? '';
+    const payment = payload.payload?.payment?.entity;
+    const resourceId = payment?.id ?? payload.payload?.order?.entity?.id ?? '';
+    if (!eventName) {
       throw new DomainError(ERROR_CODES.VALIDATION_ERROR, 'Invalid webhook event.', 400);
     }
     const eventKey = createHash('sha256')
@@ -325,19 +319,27 @@ export class BillingService implements OnModuleInit {
     const duplicate = await this.prisma.billingWebhookEvent.findUnique({ where: { eventKey } });
     if (duplicate) return { received: true, duplicate: true };
 
-    if (eventName === 'order_created' || eventName === 'order_refunded') {
-      await this.syncOrderEvent(eventName, payload);
-    } else if (eventName.startsWith('subscription_') && payload.data.type === 'subscriptions') {
-      await this.syncSubscriptionEvent(payload);
+    if (
+      (eventName === 'payment.captured' || eventName === 'order.paid') &&
+      payment?.notes?.user_id
+    ) {
+      const planId = normalizePlanId(payment.notes.plan_id) ?? 'free';
+      await this.activateSubscription({
+        userId: payment.notes.user_id,
+        planId,
+        orderId: payment.order_id,
+        paymentId: payment.id,
+        customerId: null,
+      });
     }
 
     try {
       await this.prisma.billingWebhookEvent.create({
         data: {
-          provider: 'lemonsqueezy',
+          provider: 'razorpay',
           eventKey,
           eventName,
-          resourceId: payload.data.id,
+          resourceId: resourceId || null,
           payload: payload as unknown as Prisma.InputJsonValue,
         },
       });
@@ -347,108 +349,51 @@ export class BillingService implements OnModuleInit {
     return { received: true };
   }
 
-  private async syncOrderEvent(eventName: string, payload: LemonWebhookPayload) {
-    const custom = payload.meta?.custom_data;
-    const userId = String(custom?.user_id ?? '');
-    const planId = normalizePlanId(custom?.plan_id);
-    if (!userId || planId !== 'free') return;
-    const attributes = payload.data.attributes;
-    const customerId = String(attributes.customer_id ?? '') || null;
-    const status = eventName === 'order_refunded' ? 'refunded' : 'active';
-    const firstItem = attributes.first_order_item as { variant_id?: number | string } | undefined;
+  private async activateSubscription(input: {
+    userId: string;
+    planId: CheckoutPlanId;
+    orderId: string;
+    paymentId: string;
+    customerId: string | null;
+  }) {
+    const periodEnd =
+      input.planId === 'free'
+        ? null
+        : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
     await this.prisma.subscription.upsert({
-      where: { userId },
+      where: { userId: input.userId },
       create: {
-        userId,
-        planId: 'free',
-        provider: 'lemonsqueezy',
-        status,
-        externalCustomerId: customerId,
-        externalOrderId: payload.data.id,
-        variantId: String(firstItem?.variant_id ?? '') || null,
-      },
-      update: {
-        planId: 'free',
-        provider: 'lemonsqueezy',
-        status,
-        externalCustomerId: customerId,
-        externalOrderId: payload.data.id,
-        externalSubscriptionId: null,
-        currentPeriodEnd: null,
-      },
-    });
-  }
-
-  private async syncSubscriptionEvent(payload: LemonWebhookPayload) {
-    const custom = payload.meta?.custom_data;
-    const attributes = payload.data.attributes;
-    const userId = String(custom?.user_id ?? '');
-    const customerId = String(attributes.customer_id ?? '') || null;
-    const subscriptionId = payload.data.id;
-    const existing = userId
-      ? await this.prisma.subscription.findUnique({ where: { userId } })
-      : await this.prisma.subscription.findFirst({
-          where: {
-            OR: [
-              { externalSubscriptionId: subscriptionId },
-              ...(customerId ? [{ externalCustomerId: customerId }] : []),
-            ],
-          },
-        });
-    const resolvedUserId = userId || existing?.userId;
-    if (!resolvedUserId) {
-      this.logger.warn(`Ignoring unlinked Lemon Squeezy subscription ${subscriptionId}`);
-      return;
-    }
-    const variantId = String(attributes.variant_id ?? '');
-    const planId = normalizePlanId(custom?.plan_id) ?? this.planIdForVariant(variantId);
-    const periodEnd = parseDate(attributes.ends_at ?? attributes.renews_at);
-    const status = normalizeLemonStatus(String(attributes.status ?? 'inactive'));
-    await this.prisma.subscription.upsert({
-      where: { userId: resolvedUserId },
-      create: {
-        userId: resolvedUserId,
-        planId,
-        provider: 'lemonsqueezy',
-        status,
-        externalCustomerId: customerId,
-        externalSubscriptionId: subscriptionId,
-        externalOrderId: String(attributes.order_id ?? '') || null,
-        variantId: variantId || null,
+        userId: input.userId,
+        planId: input.planId,
+        provider: 'razorpay',
+        status: 'active',
+        externalCustomerId: input.customerId,
+        externalOrderId: input.orderId,
+        externalSubscriptionId: input.paymentId,
         currentPeriodEnd: periodEnd,
       },
       update: {
-        planId,
-        provider: 'lemonsqueezy',
-        status,
-        externalCustomerId: customerId,
-        externalSubscriptionId: subscriptionId,
-        externalOrderId: String(attributes.order_id ?? '') || undefined,
-        variantId: variantId || undefined,
+        planId: input.planId,
+        provider: 'razorpay',
+        status: 'active',
+        externalCustomerId: input.customerId ?? undefined,
+        externalOrderId: input.orderId,
+        externalSubscriptionId: input.paymentId,
         currentPeriodEnd: periodEnd,
       },
     });
   }
 
-  private variantIdForPlan(planId: CheckoutPlanId): string {
-    if (planId === 'free') return this.config.lemonSqueezyVariantFree;
-    if (planId === 'pro') return this.config.lemonSqueezyVariantPro;
-    return this.config.lemonSqueezyVariantBusiness;
-  }
-
-  private planIdForVariant(variantId: string): CheckoutPlanId {
-    if (variantId === this.config.lemonSqueezyVariantBusiness) return 'business';
-    if (variantId === this.config.lemonSqueezyVariantFree) return 'free';
-    return 'pro';
-  }
-
-  private lemonRequest(path: string, init?: RequestInit) {
-    return fetch(`https://api.lemonsqueezy.com/v1${path}`, {
+  private razorpayRequest(path: string, init?: RequestInit) {
+    const auth = Buffer.from(
+      `${this.config.razorpayKeyId}:${this.config.razorpayKeySecret}`,
+    ).toString('base64');
+    return fetch(`https://api.razorpay.com/v1${path}`, {
       ...init,
       headers: {
-        Accept: 'application/vnd.api+json',
-        'Content-Type': 'application/vnd.api+json',
-        Authorization: `Bearer ${this.config.lemonSqueezyApiKey}`,
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        Authorization: `Basic ${auth}`,
         ...init?.headers,
       },
     });
@@ -468,13 +413,11 @@ export class BillingService implements OnModuleInit {
             name: plan.name,
             monthlyPriceCents: plan.monthlyPriceCents,
             entitlements: plan.entitlements as unknown as Prisma.InputJsonValue,
-            lemonSqueezyVariantId: this.variantIdForPlan(plan.id as CheckoutPlanId),
           },
           update: {
             name: plan.name,
             monthlyPriceCents: plan.monthlyPriceCents,
             entitlements: plan.entitlements as unknown as Prisma.InputJsonValue,
-            lemonSqueezyVariantId: this.variantIdForPlan(plan.id as CheckoutPlanId),
           },
         });
       }
@@ -492,61 +435,54 @@ function normalizePlanId(value: unknown): CheckoutPlanId | null {
   return isCheckoutPlanId(value) ? value : null;
 }
 
-export function normalizeLemonStatus(status: string): string {
-  if (status === 'on_trial') return 'trialing';
-  if (
-    status === 'active' ||
-    status === 'paused' ||
-    status === 'past_due' ||
-    status === 'unpaid' ||
-    status === 'cancelled' ||
-    status === 'expired'
-  ) {
-    return status;
-  }
-  return 'inactive';
-}
-
 export function hasActiveBillingStatus(status: string, periodEnd?: Date | null): boolean {
   if (status === 'active' || status === 'trialing') return true;
   return status === 'cancelled' && Boolean(periodEnd && periodEnd.getTime() > Date.now());
 }
 
-export function verifyLemonSignature(
+export function verifyRazorpayPaymentSignature(
+  orderId: string,
+  paymentId: string,
+  signature: string,
+  secret: string,
+): void {
+  if (!secret || !signature) {
+    throw new DomainError(ERROR_CODES.FORBIDDEN, 'Invalid Razorpay payment signature.', 401);
+  }
+  const expected = Buffer.from(
+    createHmac('sha256', secret).update(`${orderId}|${paymentId}`).digest('hex'),
+    'utf8',
+  );
+  const received = Buffer.from(signature, 'utf8');
+  if (expected.length !== received.length || !timingSafeEqual(expected, received)) {
+    throw new DomainError(ERROR_CODES.FORBIDDEN, 'Invalid Razorpay payment signature.', 401);
+  }
+}
+
+export function verifyRazorpayWebhookSignature(
   rawBody: Buffer,
   signature: string | undefined,
   secret: string,
 ): void {
   if (!secret || !signature) {
-    throw new DomainError(
-      ERROR_CODES.FORBIDDEN,
-      'Invalid Lemon Squeezy webhook signature.',
-      401,
-    );
+    throw new DomainError(ERROR_CODES.FORBIDDEN, 'Invalid Razorpay webhook signature.', 401);
   }
-  const expected = Buffer.from(createHmac('sha256', secret).update(rawBody).digest('hex'), 'utf8');
+  const expected = Buffer.from(
+    createHmac('sha256', secret).update(rawBody).digest('hex'),
+    'utf8',
+  );
   const received = Buffer.from(signature, 'utf8');
   if (expected.length !== received.length || !timingSafeEqual(expected, received)) {
-    throw new DomainError(
-      ERROR_CODES.FORBIDDEN,
-      'Invalid Lemon Squeezy webhook signature.',
-      401,
-    );
+    throw new DomainError(ERROR_CODES.FORBIDDEN, 'Invalid Razorpay webhook signature.', 401);
   }
 }
 
-function parseDate(value: unknown): Date | null {
-  if (typeof value !== 'string' || !value) return null;
-  const parsed = new Date(value);
-  return Number.isNaN(parsed.getTime()) ? null : parsed;
-}
-
-function lemonErrorMessage(raw: string, fallback: string): string {
+function razorpayErrorMessage(raw: string, fallback: string): string {
   try {
     const parsed = JSON.parse(raw) as {
-      errors?: Array<{ detail?: string; title?: string }>;
+      error?: { description?: string; reason?: string };
     };
-    const message = parsed.errors?.[0]?.detail?.trim() || parsed.errors?.[0]?.title?.trim();
+    const message = parsed.error?.description?.trim() || parsed.error?.reason?.trim();
     if (message) return message;
   } catch {
     /* ignore */

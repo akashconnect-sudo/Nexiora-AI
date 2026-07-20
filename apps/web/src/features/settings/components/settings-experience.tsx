@@ -108,11 +108,32 @@ export function SettingsExperience({ initialSection = 'account' }: { initialSect
         body: JSON.stringify({ planId }),
       });
       const body = (await response.json().catch(() => ({}))) as {
+        mode?: string;
+        keyId?: string;
+        orderId?: string;
+        amount?: number;
+        currency?: string;
+        name?: string;
+        description?: string;
+        prefill?: { email?: string; name?: string };
         url?: string;
         message?: string;
         detail?: string;
         error?: string;
       };
+      if (response.ok && body.mode === 'razorpay' && body.keyId && body.orderId) {
+        await openRazorpayCheckout({
+          keyId: body.keyId,
+          orderId: body.orderId,
+          amount: body.amount ?? 0,
+          currency: body.currency ?? 'INR',
+          name: body.name ?? 'Nexiora AI',
+          description: body.description ?? 'Nexiora payment',
+          prefill: body.prefill,
+          planId,
+        });
+        return;
+      }
       if (response.ok && body.url) {
         window.location.assign(body.url);
         return;
@@ -123,6 +144,75 @@ export function SettingsExperience({ initialSection = 'account' }: { initialSect
     } finally {
       setBillingBusy(false);
     }
+  }
+
+  async function openRazorpayCheckout(input: {
+    keyId: string;
+    orderId: string;
+    amount: number;
+    currency: string;
+    name: string;
+    description: string;
+    prefill?: { email?: string; name?: string };
+    planId: 'free' | 'pro' | 'business';
+  }) {
+    await loadRazorpayScript();
+    const RazorpayCtor = window.Razorpay;
+    if (!RazorpayCtor) {
+      throw new Error('Razorpay checkout failed to load.');
+    }
+
+    await new Promise<void>((resolve, reject) => {
+      const checkout = new RazorpayCtor({
+        key: input.keyId,
+        amount: input.amount,
+        currency: input.currency,
+        name: input.name,
+        description: input.description,
+        order_id: input.orderId,
+        prefill: input.prefill,
+        theme: { color: '#0f766e' },
+        handler: async (response) => {
+          try {
+            const verifyResponse = await fetch(apiUrl('/v1/billing/verify'), {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', ...authHeaders() },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                planId: input.planId,
+              }),
+            });
+            const verifyBody = (await verifyResponse.json().catch(() => ({}))) as {
+              detail?: string;
+              message?: string;
+              error?: string;
+            };
+            if (!verifyResponse.ok) {
+              reject(
+                new Error(
+                  verifyBody.detail ??
+                    verifyBody.message ??
+                    verifyBody.error ??
+                    'Payment verification failed.',
+                ),
+              );
+              return;
+            }
+            setBillingMessage('Payment successful. Your plan is now active.');
+            await loadBilling();
+            resolve();
+          } catch (error) {
+            reject(error);
+          }
+        },
+        modal: {
+          ondismiss: () => resolve(),
+        },
+      });
+      checkout.open();
+    });
   }
 
   async function openPortal() {
@@ -328,7 +418,7 @@ export function SettingsExperience({ initialSection = 'account' }: { initialSect
                     Payment required
                   </p>
                   <h3 className="mt-2 font-display text-xl font-semibold text-nx-ink">
-                    Pay $2 to activate Free access
+                    Pay ₹2 to activate Free access
                   </h3>
                   <p className="mt-2 text-sm leading-6 text-nx-muted">
                     You can sign in, but Nova Search unlocks only after the Free activation payment.
@@ -338,7 +428,7 @@ export function SettingsExperience({ initialSection = 'account' }: { initialSect
                     disabled={billingBusy}
                     onClick={() => void startCheckout('free')}
                   >
-                    Pay $2 &amp; activate Free
+                    Pay ₹2 &amp; activate Free
                   </Button>
                 </div>
               ) : null}
@@ -369,21 +459,21 @@ export function SettingsExperience({ initialSection = 'account' }: { initialSect
               <div className="mt-5 grid gap-4 sm:grid-cols-3">
                 <PlanCard
                   name="Free"
-                  price="$2 one-time"
+                  price="₹2 one-time"
                   description="Activate limited Free searches."
                   onClick={() => void startCheckout('free')}
                   busy={billingBusy}
                 />
                 <PlanCard
                   name="Pro"
-                  price="$20/month"
+                  price="₹2,000/month"
                   description="Higher limits and research tools."
                   onClick={() => void startCheckout('pro')}
                   busy={billingBusy}
                 />
                 <PlanCard
                   name="Business"
-                  price="$80/month"
+                  price="₹8,000/month"
                   description="Team-ready capacity and workspaces."
                   onClick={() => void startCheckout('business')}
                   busy={billingBusy}
@@ -409,7 +499,7 @@ export function SettingsExperience({ initialSection = 'account' }: { initialSect
                   </Button>
                 </div>
                 <p className="mt-1 text-sm text-nx-muted">
-                  Every successful payment (including $2 Free activation) appears here instantly.
+                  Every successful payment (including ₹2 Free activation) appears here instantly.
                 </p>
                 {invoices.length ? (
                   <ul className="mt-3 divide-y divide-nx-border rounded-xl border border-nx-border">
@@ -460,7 +550,7 @@ export function SettingsExperience({ initialSection = 'account' }: { initialSect
                   </ul>
                 ) : (
                   <p className="mt-3 rounded-xl border border-dashed border-nx-border p-5 text-sm text-nx-muted">
-                    No bills yet. After you pay $2 (or any plan), your bill shows up here
+                    No bills yet. After you pay ₹2 (or any plan), your bill shows up here
                     automatically.
                   </p>
                 )}
@@ -560,4 +650,51 @@ function PlanCard({
       </Button>
     </div>
   );
+}
+
+type RazorpaySuccessResponse = {
+  razorpay_order_id: string;
+  razorpay_payment_id: string;
+  razorpay_signature: string;
+};
+
+type RazorpayCheckoutOptions = {
+  key: string;
+  amount: number;
+  currency: string;
+  name: string;
+  description: string;
+  order_id: string;
+  prefill?: { email?: string; name?: string };
+  theme?: { color?: string };
+  handler: (response: RazorpaySuccessResponse) => void;
+  modal?: { ondismiss?: () => void };
+};
+
+declare global {
+  interface Window {
+    Razorpay?: new (options: RazorpayCheckoutOptions) => { open: () => void };
+  }
+}
+
+function loadRazorpayScript(): Promise<void> {
+  if (window.Razorpay) return Promise.resolve();
+  const existing = document.querySelector<HTMLScriptElement>('script[data-razorpay-checkout]');
+  if (existing) {
+    return new Promise((resolve, reject) => {
+      existing.addEventListener('load', () => resolve(), { once: true });
+      existing.addEventListener('error', () => reject(new Error('Failed to load Razorpay.')), {
+        once: true,
+      });
+    });
+  }
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async = true;
+    script.dataset.razorpayCheckout = 'true';
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error('Failed to load Razorpay.'));
+    document.body.appendChild(script);
+  });
 }

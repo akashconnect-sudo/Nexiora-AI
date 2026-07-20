@@ -75,32 +75,19 @@ export class AppConfigService {
     return this.config.get('OPENAI_MODEL', { infer: true });
   }
 
-  get lemonSqueezyApiKey(): string {
-    return this.config.get('LEMON_SQUEEZY_API_KEY', { infer: true }).trim();
+  get razorpayKeyId(): string {
+    return (
+      this.config.get('RAZORPAY_KEY_ID', { infer: true }).trim() ||
+      this.config.get('NEXT_PUBLIC_RAZORPAY_KEY_ID', { infer: true }).trim()
+    );
   }
 
-  get lemonSqueezyStoreId(): string {
-    return this.config.get('LEMON_SQUEEZY_STORE_ID', { infer: true }).trim();
+  get razorpayKeySecret(): string {
+    return this.config.get('RAZORPAY_KEY_SECRET', { infer: true }).trim();
   }
 
-  get lemonSqueezyWebhookSecret(): string {
-    return this.config.get('LEMON_SQUEEZY_WEBHOOK_SECRET', { infer: true }).trim();
-  }
-
-  get lemonSqueezyVariantFree(): string {
-    return this.config.get('LEMON_SQUEEZY_VARIANT_FREE', { infer: true }).trim();
-  }
-
-  get lemonSqueezyVariantPro(): string {
-    return this.config.get('LEMON_SQUEEZY_VARIANT_PRO', { infer: true }).trim();
-  }
-
-  get lemonSqueezyVariantBusiness(): string {
-    return this.config.get('LEMON_SQUEEZY_VARIANT_BUSINESS', { infer: true }).trim();
-  }
-
-  get lemonSqueezyTestMode(): boolean {
-    return this.config.get('LEMON_SQUEEZY_TEST_MODE', { infer: true });
+  get razorpayWebhookSecret(): string {
+    return this.config.get('RAZORPAY_WEBHOOK_SECRET', { infer: true }).trim();
   }
 
   get publicWebUrl(): string {

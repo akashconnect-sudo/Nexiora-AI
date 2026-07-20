@@ -99,7 +99,7 @@ export function LocalAuthForm({ mode }: LocalAuthFormProps) {
         email: user.email,
         displayName: user.displayName,
       });
-      // Always land on billing after login so unpaid users activate Free ($2).
+      // Always land on billing after login so unpaid users activate Free (₹2).
       router.push('/settings/subscription');
       router.refresh();
     } catch (err) {

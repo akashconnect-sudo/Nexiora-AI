@@ -47,6 +47,22 @@ export class BillingController {
     return this.billing.createCheckout(req.userId!, body.planId);
   }
 
+  @Post('verify')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  verify(
+    @Req() req: AuthenticatedRequest,
+    @Body()
+    body: {
+      razorpay_order_id?: unknown;
+      razorpay_payment_id?: unknown;
+      razorpay_signature?: unknown;
+      planId?: unknown;
+    },
+  ) {
+    return this.billing.verifyPayment(req.userId!, body);
+  }
+
   @Post('portal')
   @UseGuards(AuthGuard)
   @ApiBearerAuth()
@@ -57,9 +73,12 @@ export class BillingController {
   @Post('webhook')
   webhook(
     @Req() req: RawBodyRequest<Request>,
-    @Headers('x-signature') signature?: string,
-    @Headers('x-event-name') eventName?: string,
+    @Headers('x-razorpay-signature') razorpaySignature?: string,
+    @Headers('x-signature') legacySignature?: string,
   ) {
-    return this.billing.handleWebhook(req.rawBody ?? Buffer.from(''), signature, eventName);
+    return this.billing.handleWebhook(
+      req.rawBody ?? Buffer.from(''),
+      razorpaySignature ?? legacySignature,
+    );
   }
 }
