@@ -138,8 +138,7 @@ export class BillingService implements OnModuleInit {
     if (!this.config.razorpayKeyId || !this.config.razorpayKeySecret) {
       return {
         mode: 'manual',
-        message:
-          'Razorpay is not configured. Set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET.',
+        message: 'Razorpay is not configured. Set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET.',
         planId,
         userId,
       };
@@ -213,14 +212,11 @@ export class BillingService implements OnModuleInit {
     if (!orderId || !paymentId || !signature) {
       throw new DomainError(ERROR_CODES.VALIDATION_ERROR, 'Missing Razorpay payment fields.', 400);
     }
-    verifyRazorpayPaymentSignature(
-      orderId,
-      paymentId,
-      signature,
-      this.config.razorpayKeySecret,
-    );
+    verifyRazorpayPaymentSignature(orderId, paymentId, signature, this.config.razorpayKeySecret);
 
-    const paymentResponse = await this.razorpayRequest(`/payments/${encodeURIComponent(paymentId)}`);
+    const paymentResponse = await this.razorpayRequest(
+      `/payments/${encodeURIComponent(paymentId)}`,
+    );
     if (!paymentResponse.ok) {
       throw new DomainError(ERROR_CODES.PROVIDER_UNAVAILABLE, 'Unable to verify payment.', 502);
     }
@@ -237,9 +233,7 @@ export class BillingService implements OnModuleInit {
     }
 
     const planId =
-      normalizePlanId(body.planId) ??
-      normalizePlanId(payment.notes?.plan_id) ??
-      'free';
+      normalizePlanId(body.planId) ?? normalizePlanId(payment.notes?.plan_id) ?? 'free';
     const notesUserId = payment.notes?.user_id;
     if (notesUserId && notesUserId !== userId) {
       throw new DomainError(ERROR_CODES.FORBIDDEN, 'Payment does not belong to this user.', 403);
@@ -269,7 +263,9 @@ export class BillingService implements OnModuleInit {
       `/orders/${encodeURIComponent(subscription.externalOrderId)}/payments`,
     );
     if (!response.ok) {
-      this.logger.warn(`Unable to list Razorpay payments for order ${subscription.externalOrderId}`);
+      this.logger.warn(
+        `Unable to list Razorpay payments for order ${subscription.externalOrderId}`,
+      );
       return { configured: true, invoices: [] };
     }
     const payload = (await response.json()) as { items?: RazorpayPayment[] };
@@ -312,10 +308,7 @@ export class BillingService implements OnModuleInit {
     if (!eventName) {
       throw new DomainError(ERROR_CODES.VALIDATION_ERROR, 'Invalid webhook event.', 400);
     }
-    const eventKey = createHash('sha256')
-      .update(`${eventName}:`)
-      .update(rawBody)
-      .digest('hex');
+    const eventKey = createHash('sha256').update(`${eventName}:`).update(rawBody).digest('hex');
     const duplicate = await this.prisma.billingWebhookEvent.findUnique({ where: { eventKey } });
     if (duplicate) return { received: true, duplicate: true };
 
@@ -357,9 +350,7 @@ export class BillingService implements OnModuleInit {
     customerId: string | null;
   }) {
     const periodEnd =
-      input.planId === 'free'
-        ? null
-        : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+      input.planId === 'free' ? null : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
     await this.prisma.subscription.upsert({
       where: { userId: input.userId },
       create: {
@@ -467,10 +458,7 @@ export function verifyRazorpayWebhookSignature(
   if (!secret || !signature) {
     throw new DomainError(ERROR_CODES.FORBIDDEN, 'Invalid Razorpay webhook signature.', 401);
   }
-  const expected = Buffer.from(
-    createHmac('sha256', secret).update(rawBody).digest('hex'),
-    'utf8',
-  );
+  const expected = Buffer.from(createHmac('sha256', secret).update(rawBody).digest('hex'), 'utf8');
   const received = Buffer.from(signature, 'utf8');
   if (expected.length !== received.length || !timingSafeEqual(expected, received)) {
     throw new DomainError(ERROR_CODES.FORBIDDEN, 'Invalid Razorpay webhook signature.', 401);

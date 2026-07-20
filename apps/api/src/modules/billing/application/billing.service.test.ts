@@ -26,16 +26,14 @@ describe('Razorpay billing helpers', () => {
     const orderId = 'order_test';
     const paymentId = 'pay_test';
     const secret = 'test-signing-secret';
-    const signature = createHmac('sha256', secret)
-      .update(`${orderId}|${paymentId}`)
-      .digest('hex');
+    const signature = createHmac('sha256', secret).update(`${orderId}|${paymentId}`).digest('hex');
 
     expect(() =>
       verifyRazorpayPaymentSignature(orderId, paymentId, signature, secret),
     ).not.toThrow();
-    expect(() =>
-      verifyRazorpayPaymentSignature(orderId, 'pay_other', signature, secret),
-    ).toThrow('Invalid Razorpay payment signature.');
+    expect(() => verifyRazorpayPaymentSignature(orderId, 'pay_other', signature, secret)).toThrow(
+      'Invalid Razorpay payment signature.',
+    );
   });
 
   it('verifies the exact raw webhook body', () => {

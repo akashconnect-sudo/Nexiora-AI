@@ -35,7 +35,7 @@
 | News & Trends        | Feeds, breaking, trending topics          | NewsItem, TrendSignal                 |
 | Creator              | Ideation artifacts                        | CreatorInsight                        |
 | Research             | Academic ranking, citation formats        | CitationExport                        |
-| Billing              | Plans, entitlements, Lemon Squeezy sync  | Subscription, Entitlement             |
+| Billing              | Plans, entitlements, Lemon Squeezy sync   | Subscription, Entitlement             |
 | Developer Platform   | API keys, metering                        | ApiKey, UsageRecord                   |
 | Notification         | In-app, email, push                       | Notification                          |
 | Admin & Audit        | RBAC admin, moderation, audit             | AuditLog, ModerationCase              |

@@ -40,10 +40,7 @@ export class BillingController {
   @Post('checkout')
   @UseGuards(AuthGuard)
   @ApiBearerAuth()
-  checkout(
-    @Req() req: AuthenticatedRequest,
-    @Body() body: { planId?: unknown },
-  ) {
+  checkout(@Req() req: AuthenticatedRequest, @Body() body: { planId?: unknown }) {
     return this.billing.createCheckout(req.userId!, body.planId);
   }
 
