@@ -14,6 +14,14 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
   applicationName: siteConfig.name,
   manifest: '/manifest.webmanifest',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: siteConfig.name,
+  },
+  formatDetection: {
+    telephone: false,
+  },
   authors: [{ name: siteConfig.name }],
   creator: siteConfig.name,
   publisher: siteConfig.name,
