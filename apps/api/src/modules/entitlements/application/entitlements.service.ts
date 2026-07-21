@@ -52,7 +52,7 @@ export class EntitlementsService {
         ERROR_CODES.PAYMENT_REQUIRED,
         'Sign in and complete the $2 Free activation payment to start searching.',
         402,
-        { paymentRequired: true, activationFeeInr: 2, suggestedPlans: ['free', 'pro', 'business'] },
+        { paymentRequired: true, activationFeeUsd: 2, suggestedPlans: ['free', 'pro', 'business'] },
       );
     }
 
@@ -122,7 +122,7 @@ export class EntitlementsService {
           402,
           {
             paymentRequired: true,
-            activationFeeInr: 2,
+            activationFeeUsd: 2,
             suggestedPlans: ['free', 'pro', 'business'],
           },
         );
@@ -139,7 +139,7 @@ export class EntitlementsService {
       ERROR_CODES.PAYMENT_REQUIRED,
       'Complete the $2 Free activation payment to use Nova Search.',
       402,
-      { paymentRequired: true, activationFeeInr: 2, suggestedPlans: ['free', 'pro', 'business'] },
+      { paymentRequired: true, activationFeeUsd: 2, suggestedPlans: ['free', 'pro', 'business'] },
     );
   }
 

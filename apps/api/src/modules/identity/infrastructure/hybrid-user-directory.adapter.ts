@@ -13,6 +13,7 @@ export class HybridUserDirectoryAdapter implements UserDirectoryPort {
   private readonly logger = new Logger(HybridUserDirectoryAdapter.name);
   private readonly memoryBySubject = new Map<string, AppUser>();
   private readonly memoryById = new Map<string, AppUser>();
+  private readonly memoryByEmail = new Map<string, AppUser>();
 
   constructor(private readonly prisma: PrismaService) {}
 
@@ -23,24 +24,35 @@ export class HybridUserDirectoryAdapter implements UserDirectoryPort {
 
     if (await this.canUsePrisma()) {
       try {
-        const user = await this.prisma.user.upsert({
+        const subjectUser = await this.prisma.user.findUnique({
           where: { clerkId: principal.subjectId },
-          create: {
-            clerkId: principal.subjectId,
-            email: principal.email,
-            displayName: principal.displayName,
-            avatarUrl: principal.avatarUrl,
-            emailVerifiedAt: principal.emailVerified ? new Date() : null,
-            lastLoginAt: new Date(),
-          },
-          update: {
-            email: principal.email,
-            displayName: principal.displayName,
-            avatarUrl: principal.avatarUrl,
-            emailVerifiedAt: principal.emailVerified ? new Date() : undefined,
-            lastLoginAt: new Date(),
-          },
         });
+        const emailUser =
+          !subjectUser && principal.emailVerified
+            ? await this.prisma.user.findUnique({ where: { email: principal.email } })
+            : null;
+        const existing = subjectUser ?? emailUser;
+        const user = existing
+          ? await this.prisma.user.update({
+              where: { id: existing.id },
+              data: {
+                email: principal.email,
+                displayName: principal.displayName,
+                avatarUrl: principal.avatarUrl,
+                emailVerifiedAt: principal.emailVerified ? new Date() : undefined,
+                lastLoginAt: new Date(),
+              },
+            })
+          : await this.prisma.user.create({
+              data: {
+                clerkId: principal.subjectId,
+                email: principal.email,
+                displayName: principal.displayName,
+                avatarUrl: principal.avatarUrl,
+                emailVerifiedAt: principal.emailVerified ? new Date() : null,
+                lastLoginAt: new Date(),
+              },
+            });
         const mapped = this.toAppUser(user);
         this.cache(principal.subjectId, mapped);
         return mapped;
@@ -49,10 +61,12 @@ export class HybridUserDirectoryAdapter implements UserDirectoryPort {
       }
     }
 
-    const existing = this.memoryBySubject.get(principal.subjectId);
+    const existing =
+      this.memoryBySubject.get(principal.subjectId) ??
+      (principal.emailVerified ? this.memoryByEmail.get(principal.email) : undefined);
     const mapped: AppUser = {
       id: existing?.id ?? randomUUID(),
-      clerkId: principal.subjectId,
+      clerkId: existing?.clerkId ?? principal.subjectId,
       email: principal.email,
       displayName: principal.displayName,
       role: existing?.role ?? 'USER',
@@ -77,6 +91,7 @@ export class HybridUserDirectoryAdapter implements UserDirectoryPort {
   private cache(subjectId: string, user: AppUser): void {
     this.memoryBySubject.set(subjectId, user);
     this.memoryById.set(user.id, user);
+    this.memoryByEmail.set(user.email, user);
   }
 
   private async canUsePrisma(): Promise<boolean> {

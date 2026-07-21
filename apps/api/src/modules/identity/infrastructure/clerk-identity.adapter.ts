@@ -44,12 +44,19 @@ export class ClerkIdentityAdapter implements IdentityProviderPort {
         user.emailAddresses.find((e) => e.id === user.primaryEmailAddressId)?.emailAddress ??
         user.emailAddresses[0]?.emailAddress ??
         null;
+      const metadataDisplayName =
+        typeof user.unsafeMetadata?.displayName === 'string'
+          ? user.unsafeMetadata.displayName.trim()
+          : '';
 
       return {
         subjectId: user.id,
         email: primaryEmail,
         displayName:
-          [user.firstName, user.lastName].filter(Boolean).join(' ') || user.username || null,
+          metadataDisplayName ||
+          [user.firstName, user.lastName].filter(Boolean).join(' ') ||
+          user.username ||
+          null,
         avatarUrl: user.imageUrl ?? null,
         emailVerified: user.emailAddresses.some((e) => e.verification?.status === 'verified'),
       };

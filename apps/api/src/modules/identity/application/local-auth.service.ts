@@ -129,10 +129,7 @@ export class LocalAuthService {
     };
 
     const user = await this.users.upsertFromPrincipal(principal);
-    const expiresInSec = 60 * 60 * 24 * 7;
-    const accessToken = await this.signToken(user, expiresInSec);
-
-    return { accessToken, expiresInSec, user };
+    return this.issueSession(user);
   }
 
   async verifyAccessToken(token: string): Promise<AuthPrincipal | null> {
@@ -155,6 +152,16 @@ export class LocalAuthService {
     } catch {
       return null;
     }
+  }
+
+  async issueSession(user: AppUser): Promise<{
+    accessToken: string;
+    expiresInSec: number;
+    user: AppUser;
+  }> {
+    const expiresInSec = 60 * 60 * 24 * 7;
+    const accessToken = await this.signToken(user, expiresInSec);
+    return { accessToken, expiresInSec, user };
   }
 
   private async signToken(user: AppUser, expiresInSec: number): Promise<string> {

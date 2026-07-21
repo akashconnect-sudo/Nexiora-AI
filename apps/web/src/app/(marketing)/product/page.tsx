@@ -7,18 +7,12 @@ import { buildMetadata, faqJsonLd } from '@/lib/seo';
 export const metadata = buildMetadata({
   title: 'Nexiora AI | Nova Search — AI search with citations you can verify',
   description:
-    'Nova Search retrieves multiple sources, ranks them by trust and freshness, and returns cited answers with confidence scores. Try free AI search for research and analysis.',
-  path: '/',
-  keywords: [
-    'AI search with citations',
-    'Nova Search',
-    'Nexiora AI',
-    'verified AI answers',
-    'research search engine',
-  ],
+    'Nova Search retrieves multiple sources, ranks them by trust and freshness, and returns cited answers with confidence scores.',
+  path: '/product',
+  keywords: ['AI search with citations', 'Nova Search', 'verified AI answers'],
 });
 
-export default function HomePage() {
+export default function ProductPage() {
   const { sections } = homeCopy;
 
   return (
@@ -38,7 +32,7 @@ export default function HomePage() {
         <p className="mt-5 max-w-2xl text-lg leading-relaxed text-nx-muted">{homeCopy.lead}</p>
         <HeroSearch />
         <div className="mt-6 flex flex-wrap gap-3">
-          <Link href="/search">
+          <Link href="/sign-up">
             <Button>{homeCopy.primaryCta}</Button>
           </Link>
           <Link href="/pricing">

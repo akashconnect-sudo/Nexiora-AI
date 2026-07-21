@@ -50,4 +50,16 @@ export class AuthController {
     const user = req.userId ? await this.users.findById(req.userId) : null;
     return { user };
   }
+
+  @Post('clerk/exchange')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Exchange a verified Clerk token for a Nexiora application session' })
+  async exchangeClerk(@Req() req: AuthenticatedRequest) {
+    const user = req.userId ? await this.users.findById(req.userId) : null;
+    if (!user) {
+      return { accessToken: null, user: null };
+    }
+    return this.localAuth.issueSession(user);
+  }
 }

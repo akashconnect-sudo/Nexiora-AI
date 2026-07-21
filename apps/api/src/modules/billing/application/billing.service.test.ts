@@ -1,6 +1,7 @@
 import { createHmac } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
 import {
+  PLAN_AMOUNT_CENTS,
   hasActiveBillingStatus,
   isCheckoutPlanId,
   verifyRazorpayPaymentSignature,
@@ -8,6 +9,10 @@ import {
 } from './billing.service';
 
 describe('Razorpay billing helpers', () => {
+  it('uses USD-cent amounts for every checkout plan', () => {
+    expect(PLAN_AMOUNT_CENTS).toEqual({ free: 200, pro: 2000, business: 8000 });
+  });
+
   it('accepts only checkout plan IDs', () => {
     expect(isCheckoutPlanId('free')).toBe(true);
     expect(isCheckoutPlanId('pro')).toBe(true);

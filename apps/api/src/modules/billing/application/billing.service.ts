@@ -23,6 +23,12 @@ type RazorpayPayment = {
   amount: number;
   currency: string;
   status: string;
+  method?: string;
+  description?: string;
+  fee?: number;
+  tax?: number;
+  captured?: boolean;
+  amount_refunded?: number;
   email?: string;
   contact?: string;
   notes?: Record<string, string>;
@@ -45,16 +51,25 @@ type BillingInvoice = {
   amountPaid: number;
   currency: string;
   createdAt: string;
+  orderId: string;
+  paymentId: string;
+  planId: CheckoutPlanId;
+  method: string | null;
+  email: string | null;
+  contact: string | null;
+  fee: number | null;
+  tax: number | null;
+  amountRefunded: number;
   hostedUrl: string | null;
   pdfUrl: string | null;
   kind: 'invoice' | 'receipt';
 };
 
-/** Amounts in paise (INR). Free activation follows activationFeeInr; Pro/Business use monthlyPriceCents as rupees×100. */
-const PLAN_AMOUNT_PAISE: Record<CheckoutPlanId, number> = {
+/** Amounts in US cents. */
+export const PLAN_AMOUNT_CENTS: Record<CheckoutPlanId, number> = {
   free: 200,
-  pro: 200_000,
-  business: 800_000,
+  pro: 2_000,
+  business: 8_000,
 };
 
 @Injectable()
@@ -76,7 +91,7 @@ export class BillingService implements OnModuleInit {
         id: 'free',
         name: 'Free',
         monthlyPriceCents: 0,
-        activationFeeInr: 2,
+        activationFeeUsd: 2,
         entitlements: DEFAULT_PLAN_ENTITLEMENTS.free,
       },
       {
@@ -101,7 +116,7 @@ export class BillingService implements OnModuleInit {
         status: 'unpaid',
         accessGranted: false,
         source: 'default',
-        activationFeeInr: 2,
+        activationFeeUsd: 2,
       };
     }
     const sub = await this.prisma.subscription.findUnique({ where: { userId } });
@@ -111,7 +126,7 @@ export class BillingService implements OnModuleInit {
         status: 'unpaid',
         accessGranted: false,
         source: 'default',
-        activationFeeInr: 2,
+        activationFeeUsd: 2,
       };
     }
     const accessGranted = hasActiveBillingStatus(sub.status, sub.currentPeriodEnd);
@@ -121,7 +136,7 @@ export class BillingService implements OnModuleInit {
       currentPeriodEnd: sub.currentPeriodEnd,
       accessGranted,
       source: 'database',
-      activationFeeInr: 2,
+      activationFeeUsd: 2,
     };
   }
 
@@ -153,7 +168,7 @@ export class BillingService implements OnModuleInit {
       );
     }
 
-    const amount = PLAN_AMOUNT_PAISE[planId];
+    const amount = PLAN_AMOUNT_CENTS[planId];
     const receipt = `nx_${planId}_${userId.replace(/-/g, '').slice(0, 12)}_${Date.now()
       .toString(36)
       .slice(-6)}`.slice(0, 40);
@@ -161,7 +176,7 @@ export class BillingService implements OnModuleInit {
       method: 'POST',
       body: JSON.stringify({
         amount,
-        currency: 'INR',
+        currency: 'USD',
         receipt,
         notes: {
           user_id: userId,
@@ -279,6 +294,16 @@ export class BillingService implements OnModuleInit {
       createdAt: payment.created_at
         ? new Date(payment.created_at * 1000).toISOString()
         : new Date().toISOString(),
+      orderId: payment.order_id,
+      paymentId: payment.id,
+      planId:
+        normalizePlanId(payment.notes?.plan_id) ?? normalizePlanId(subscription.planId) ?? 'free',
+      method: payment.method ?? null,
+      email: payment.email ?? null,
+      contact: payment.contact ?? null,
+      fee: payment.fee ?? null,
+      tax: payment.tax ?? null,
+      amountRefunded: payment.amount_refunded ?? 0,
       hostedUrl: null,
       pdfUrl: null,
       kind: 'receipt' as const,

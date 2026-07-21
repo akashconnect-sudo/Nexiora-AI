@@ -18,6 +18,8 @@ const NAV = [
   { href: '/settings', label: 'Settings', icon: 'settings' },
 ] as const;
 
+type UpgradeTarget = 'pro' | 'business';
+
 function NavIcon({ name }: { name: (typeof NAV)[number]['icon'] }) {
   const common = 'h-[18px] w-[18px] shrink-0';
   switch (name) {
@@ -108,6 +110,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<SessionUser | null>(null);
   const [authReady, setAuthReady] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [upgradeTarget, setUpgradeTarget] = useState<UpgradeTarget | null>('pro');
+  const [dismissedUpgrade, setDismissedUpgrade] = useState<UpgradeTarget | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -133,7 +137,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!user) return;
-    if ((pathname ?? '/').startsWith('/settings')) return;
 
     let cancelled = false;
     void (async () => {
@@ -142,8 +145,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           headers: authHeaders(),
         });
         if (!response.ok || cancelled) return;
-        const body = (await response.json()) as { accessGranted?: boolean };
-        if (!body.accessGranted && !cancelled) {
+        const body = (await response.json()) as {
+          accessGranted?: boolean;
+          planId?: string;
+        };
+        const nextUpgrade: UpgradeTarget | null =
+          body.accessGranted && body.planId === 'business'
+            ? null
+            : body.accessGranted && body.planId === 'pro'
+              ? 'business'
+              : 'pro';
+        setUpgradeTarget(nextUpgrade);
+        if (!body.accessGranted && !cancelled && !(pathname ?? '/').startsWith('/settings')) {
           router.replace('/settings/subscription');
         }
       } catch {
@@ -294,6 +307,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
+        {upgradeTarget && dismissedUpgrade !== upgradeTarget ? (
+          <UpgradeBanner
+            target={upgradeTarget}
+            onClose={() => setDismissedUpgrade(upgradeTarget)}
+          />
+        ) : null}
         <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-2 border-b border-nx-border bg-nx-bg/90 px-3 backdrop-blur-md sm:gap-3 sm:px-4">
           <div className="flex min-w-0 items-center gap-2 sm:gap-3">
             <button
@@ -332,6 +351,83 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </header>
         <main className="flex-1">{children}</main>
+      </div>
+    </div>
+  );
+}
+
+function UpgradeBanner({ target, onClose }: { target: UpgradeTarget; onClose: () => void }) {
+  const isBusiness = target === 'business';
+
+  return (
+    <div className="relative z-40 overflow-hidden border-b border-nx-accent/25 bg-[linear-gradient(90deg,color-mix(in_srgb,var(--nx-accent)_18%,var(--nx-bg)),var(--nx-bg-elevated),color-mix(in_srgb,var(--nx-accent)_12%,var(--nx-bg)))] px-3 py-2.5 sm:px-5">
+      <div className="pointer-events-none absolute left-1/4 top-1/2 h-20 w-20 -translate-y-1/2 rounded-full bg-nx-accent/10 blur-2xl" />
+      <div className="relative mx-auto flex max-w-6xl items-center gap-3">
+        <span className="hidden h-8 w-8 shrink-0 place-items-center rounded-lg border border-nx-accent/25 bg-nx-accent-soft text-nx-accent sm:grid">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            className="h-4 w-4"
+            aria-hidden="true"
+          >
+            {isBusiness ? (
+              <>
+                <path d="M4 20V8l8-4 8 4v12H4Z" />
+                <path d="M9 20v-5h6v5M8 10h.01M12 10h.01M16 10h.01" />
+              </>
+            ) : (
+              <>
+                <path d="m12 3 2.2 4.6 5 .7-3.6 3.5.9 5-4.5-2.4-4.5 2.4.9-5-3.6-3.5 5-.7L12 3Z" />
+                <path d="M8 21h8" />
+              </>
+            )}
+          </svg>
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-xs font-semibold text-nx-ink sm:text-sm">
+            {isBusiness ? 'Ready to scale your team?' : 'Unlock the full Nexiora experience'}
+          </p>
+          <p className="hidden truncate text-xs text-nx-muted sm:block">
+            {isBusiness
+              ? 'Move to Business for team workspaces, higher capacity, and priority support.'
+              : 'Upgrade to Pro for deeper research, higher limits, and more powerful answers.'}
+          </p>
+        </div>
+        <Link
+          href="/settings/subscription"
+          className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg bg-nx-accent px-3 text-xs font-semibold text-white shadow-[0_7px_18px_color-mix(in_srgb,var(--nx-accent)_20%,transparent)] transition hover:-translate-y-0.5 hover:opacity-90"
+        >
+          {isBusiness ? 'View Business' : 'Explore Pro'}
+          <svg
+            viewBox="0 0 16 16"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            className="h-3 w-3"
+            aria-hidden="true"
+          >
+            <path d="m6 3 5 5-5 5" />
+          </svg>
+        </Link>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label={`Dismiss ${isBusiness ? 'Business' : 'Pro'} plan suggestion`}
+          className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-nx-muted transition hover:bg-nx-accent-soft hover:text-nx-ink"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            className="h-4 w-4"
+            aria-hidden="true"
+          >
+            <path d="m6 6 12 12M18 6 6 18" />
+          </svg>
+        </button>
       </div>
     </div>
   );
