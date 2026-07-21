@@ -155,7 +155,6 @@ export function ClerkEmailAuthForm({ mode }: ClerkEmailAuthFormProps) {
             {resendIn > 0 ? `Resend in ${resendIn}s` : 'Resend code'}
           </button>
         </div>
-        <div id="clerk-captcha" />
       </form>
     );
   }
@@ -283,6 +282,29 @@ export function ClerkEmailAuthForm({ mode }: ClerkEmailAuthFormProps) {
             {error}
           </p>
         ) : null}
+        {mode === 'sign-up' ? (
+          <div className="auth-captcha-shell">
+            <div
+              id="clerk-captcha"
+              data-cl-theme="dark"
+              data-cl-size="flexible"
+              data-cl-language="en-US"
+            />
+            <p>
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.7"
+                aria-hidden="true"
+              >
+                <path d="M12 3 5 6v5c0 4.6 2.8 8.3 7 10 4.2-1.7 7-5.4 7-10V6l-7-3Z" />
+                <path d="m9 12 2 2 4-4" />
+              </svg>
+              Protected by Cloudflare Turnstile
+            </p>
+          </div>
+        ) : null}
         <Button type="submit" className="h-12 w-full" disabled={busy || !loaded}>
           {busy
             ? mode === 'sign-up'
@@ -292,7 +314,6 @@ export function ClerkEmailAuthForm({ mode }: ClerkEmailAuthFormProps) {
               ? 'Create account'
               : 'Log in securely'}
         </Button>
-        <div id="clerk-captcha" />
       </form>
     </div>
   );
