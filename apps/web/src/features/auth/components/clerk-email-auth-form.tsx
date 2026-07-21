@@ -199,7 +199,7 @@ export function ClerkEmailAuthForm({ mode }: ClerkEmailAuthFormProps) {
                 value={displayName}
                 onChange={(event) => setDisplayName(event.target.value)}
                 className="h-12 min-w-0 flex-1 bg-transparent text-sm text-nx-ink outline-none placeholder:text-nx-muted/70"
-                placeholder="Akash@Nova#27"
+                placeholder="YourName@Nova#27"
               />
             </div>
             <p className="mt-1.5 text-[11px] text-nx-muted">
