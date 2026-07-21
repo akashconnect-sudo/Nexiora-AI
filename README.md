@@ -4,8 +4,8 @@ Nova Search — an AI knowledge platform that returns cited, checkable answers.
 
 ## Live
 
-| Service | URL |
-| ------- | --- |
+| Service   | URL                                                                     |
+| --------- | ----------------------------------------------------------------------- |
 | App / API | [https://nexiora-ai-api.vercel.app](https://nexiora-ai-api.vercel.app/) |
 
 Health: [https://nexiora-ai-api.vercel.app/health](https://nexiora-ai-api.vercel.app/health)
@@ -25,16 +25,16 @@ Nexiora AI is a Turborepo monorepo for semantic search across live sources, with
 
 ## Tech stack
 
-| Layer | Technology |
-| ----- | ---------- |
-| Monorepo | Turborepo + pnpm |
+| Layer    | Technology                         |
+| -------- | ---------------------------------- |
+| Monorepo | Turborepo + pnpm                   |
 | Frontend | Next.js 15, React 19, Tailwind CSS |
-| Backend | NestJS |
-| Database | PostgreSQL + Prisma |
-| Cache | Redis |
-| Search | OpenSearch + Qdrant |
-| Payments | Razorpay |
-| Workers | BullMQ |
+| Backend  | NestJS                             |
+| Database | PostgreSQL + Prisma                |
+| Cache    | Redis                              |
+| Search   | OpenSearch + Qdrant                |
+| Payments | Razorpay                           |
+| Workers  | BullMQ                             |
 
 ## Repository layout
 
@@ -66,12 +66,12 @@ docker compose up -d
 
 ## Status
 
-| Phase | Status |
-| ----- | ------ |
-| Planning | Complete |
-| Foundation | Complete |
-| Core Search MVP | Complete |
-| Trust & modes | In progress |
+| Phase           | Status      |
+| --------------- | ----------- |
+| Planning        | Complete    |
+| Foundation      | Complete    |
+| Core Search MVP | Complete    |
+| Trust & modes   | In progress |
 
 ## Docs
 
