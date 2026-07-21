@@ -122,83 +122,113 @@ export function AuthExperience({ mode, googleEnabled, nextPath = null }: AuthExp
               </h2>
 
               <div className="auth-query-card">
-                <div className="flex items-center gap-3">
-                  <span className="auth-query-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
-                      <circle cx="11" cy="11" r="6.5" />
-                      <path d="m16 16 4 4" />
-                    </svg>
-                  </span>
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-white">
-                      What changed in AI safety policy this week?
-                    </p>
-                    <p className="mt-1 text-xs text-white/45">Searching 28 trusted sources…</p>
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span className="auth-query-icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+                        <circle cx="11" cy="11" r="6.5" />
+                        <path d="m16 16 4 4" />
+                      </svg>
+                    </span>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-white">
+                        What changed in AI safety policy this week?
+                      </p>
+                      <p className="mt-1 text-xs text-white/45">Searching 28 trusted sources…</p>
+                    </div>
                   </div>
+                  <span className="auth-retrieval-pill">Live retrieval</span>
                 </div>
                 <div className="mt-5 h-1.5 overflow-hidden rounded-full bg-white/10">
                   <div className="auth-progress h-full w-[86%] rounded-full bg-nx-accent" />
                 </div>
+                <div className="auth-evidence-steps">
+                  {['Discover', 'Cross-check', 'Synthesize'].map((step, index) => (
+                    <span key={step}>
+                      <i>{index + 1}</i>
+                      {step}
+                    </span>
+                  ))}
+                </div>
               </div>
 
-              <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_170px]">
+              <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_190px]">
                 <div className="auth-answer-card">
                   <div className="flex items-center justify-between gap-3">
-                    <span className="text-xs font-semibold uppercase tracking-[0.15em] text-white/45">
-                      Synthesized answer
+                    <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.15em] text-white/45">
+                      <i className="h-1.5 w-1.5 rounded-full bg-nx-accent shadow-[0_0_10px_var(--nx-accent)]" />
+                      Evidence brief
                     </span>
-                    <span className="text-xs text-nx-accent">6 citations</span>
+                    <span className="auth-citation-count">6 verified citations</span>
                   </div>
                   <p className="mt-4 text-sm leading-6 text-white/75">
                     New guidance prioritizes model evaluations, incident reporting, and transparent
                     risk thresholds before deployment.
                   </p>
-                  <div className="mt-4 flex gap-2">
-                    {['Nature', 'NIST', 'arXiv'].map((source, index) => (
+                  <div className="mt-5 flex flex-wrap gap-2">
+                    {[
+                      ['Nature', 'Journal'],
+                      ['NIST', 'Official'],
+                      ['arXiv', 'Research'],
+                    ].map(([source, type], index) => (
                       <span key={source} className="auth-source-chip">
                         <b>{index + 1}</b>
-                        {source}
+                        <span>
+                          {source}
+                          <small>{type}</small>
+                        </span>
                       </span>
                     ))}
                   </div>
                 </div>
-                <div className="auth-trust-card">
-                  <svg viewBox="0 0 92 92" className="mx-auto h-24 w-24 -rotate-90">
-                    <circle
-                      cx="46"
-                      cy="46"
-                      r="38"
-                      fill="none"
-                      stroke="white"
-                      strokeOpacity=".08"
-                      strokeWidth="7"
-                    />
-                    <circle
-                      className="auth-trust-ring"
-                      cx="46"
-                      cy="46"
-                      r="38"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="7"
-                      strokeLinecap="round"
-                      pathLength="100"
-                      strokeDasharray="92 100"
-                    />
-                  </svg>
-                  <div className="-mt-[68px] text-center">
-                    <strong className="font-display text-2xl text-white">92</strong>
-                    <span className="block text-[10px] uppercase tracking-wider text-white/40">
-                      Trust score
+
+                <div className="auth-proof-card">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/50">
+                      Evidence confidence
                     </span>
+                    <span className="auth-proof-check">
+                      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="m3 8 3 3 7-7" />
+                      </svg>
+                    </span>
+                  </div>
+                  <div className="mt-3 flex items-end gap-2">
+                    <strong className="font-display text-4xl font-semibold leading-none text-white">
+                      92
+                    </strong>
+                    <span className="pb-1 text-xs text-white/35">/ 100</span>
+                  </div>
+                  <p className="mt-1 text-[11px] font-medium text-nx-accent">High confidence</p>
+
+                  <div className="auth-proof-metrics">
+                    {[
+                      ['Authority', 96],
+                      ['Freshness', 89],
+                      ['Consensus', 91],
+                    ].map(([label, score]) => (
+                      <div key={label}>
+                        <span>
+                          {label}
+                          <b>{score}</b>
+                        </span>
+                        <i>
+                          <em style={{ width: `${score}%` }} />
+                        </i>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center justify-between gap-4 text-xs text-white/40">
-              <span>Citations before confidence.</span>
-              <span>Freshness · Authority · Consensus</span>
+            <div className="auth-story-footer">
+              <span>Every claim leaves an evidence trail.</span>
+              <div>
+                <span>Live sources</span>
+                <span>No black box</span>
+                <span>Open citations</span>
+              </div>
             </div>
           </div>
         </section>
