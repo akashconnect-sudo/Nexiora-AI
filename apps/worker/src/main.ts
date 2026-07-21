@@ -1,37 +1,20 @@
-import pino from 'pino';
-
 /**
- * Worker process entrypoint.
- * Phase 0: process boots and reports readiness for queue consumers.
- * Phase 1+: registers BullMQ processors for retrieval fan-out.
+ * Worker package entry delegates to the Nest worker bootstrap in @nexiora/api.
+ * Docker images should prefer `pnpm --filter @nexiora/api worker` after build.
  */
-const logger = pino({
-  level: process.env.LOG_LEVEL ?? 'info',
-  name: 'nexiora-worker',
+import { spawn } from 'node:child_process';
+import { join } from 'node:path';
+
+const workerEntry = join(__dirname, '..', '..', 'api', 'dist', 'worker.js');
+const child = spawn(process.execPath, [workerEntry], {
+  stdio: 'inherit',
+  env: process.env,
 });
 
-async function main(): Promise<void> {
-  logger.info(
-    {
-      redisUrl: process.env.REDIS_URL ? '[configured]' : '[missing]',
-      role: 'worker-bootstrap',
-    },
-    'Nexiora worker started (Phase 0 — no queues registered yet)',
-  );
-
-  const shutdown = (): void => {
-    logger.info('Worker shutting down');
-    process.exit(0);
-  };
-
-  process.on('SIGINT', shutdown);
-  process.on('SIGTERM', shutdown);
-
-  // Keep process alive for orchestrators / docker compose.
-  await new Promise(() => undefined);
-}
-
-main().catch((error: unknown) => {
-  console.error(error);
-  process.exit(1);
+child.on('exit', (code, signal) => {
+  if (signal) {
+    process.kill(process.pid, signal);
+    return;
+  }
+  process.exit(code ?? 1);
 });

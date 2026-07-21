@@ -10,3 +10,4 @@ export * from './utils/text';
 export * from './constants/plans';
 export * from './constants/roles';
 export * from './errors/error-codes';
+export * from './queues';

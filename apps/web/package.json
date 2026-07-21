@@ -22,6 +22,7 @@
     "@nexiora/nest-runtime": "file:nest-runtime",
     "@nexiora/search-core": "workspace:*",
     "@nexiora/shared": "workspace:*",
+    "@nexiora/telemetry": "workspace:*",
     "@nexiora/ui": "workspace:*",
     "@prisma/client": "^6.1.0",
     "dotenv": "^17.4.2",

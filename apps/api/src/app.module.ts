@@ -6,6 +6,7 @@ import { validateEnv } from './bootstrap/config.schema';
 import { AppConfigModule } from './bootstrap/app-config.module';
 import { PrismaModule } from './infrastructure/prisma/prisma.module';
 import { RedisModule } from './infrastructure/redis/redis.module';
+import { QueueModule } from './infrastructure/queue/queue.module';
 import { HealthModule } from './modules/health/health.module';
 import { IdentityModule } from './modules/identity/identity.module';
 import { EntitlementsModule } from './modules/entitlements/entitlements.module';
@@ -39,7 +40,18 @@ const envFilePaths = [
             : undefined,
         autoLogging: true,
         redact: {
-          paths: ['req.headers.authorization', 'req.headers["x-api-key"]'],
+          paths: [
+            'req.headers.authorization',
+            'req.headers.cookie',
+            'req.headers["x-api-key"]',
+            'req.body.password',
+            'req.body.email',
+            'req.body.otp',
+            'req.body.token',
+            'req.body.query',
+            'req.body.prompt',
+            'res.body',
+          ],
           remove: true,
         },
       },
@@ -47,6 +59,7 @@ const envFilePaths = [
     AppConfigModule,
     PrismaModule,
     RedisModule,
+    QueueModule,
     HealthModule,
     IdentityModule,
     EntitlementsModule,

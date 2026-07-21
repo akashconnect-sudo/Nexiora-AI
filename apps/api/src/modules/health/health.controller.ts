@@ -28,7 +28,9 @@ export class HealthController {
   }
 
   @Get('ready')
-  @ApiOperation({ summary: 'Readiness probe (database + redis)' })
+  @ApiOperation({
+    summary: 'Readiness probe (database + redis). OpenSearch/Qdrant are diagnostics only.',
+  })
   async getReady(): Promise<ReadyResponse> {
     return this.health.readiness();
   }
