@@ -1,6 +1,7 @@
 import { config as loadDotenv } from 'dotenv';
 import { existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
+import { startTelemetry, shutdownTelemetry } from '@nexiora/telemetry';
 import { AppConfigService } from './bootstrap/app-config.service';
 import { createNexioraApp } from './bootstrap/create-app';
 
@@ -21,10 +22,22 @@ function loadEnvFiles(): void {
 loadEnvFiles();
 
 async function bootstrap(): Promise<void> {
+  await startTelemetry(process.env.OTEL_SERVICE_NAME?.trim() || 'nexiora-api');
+
   const { nest } = await createNexioraApp();
   const config = nest.get(AppConfigService);
+  nest.enableShutdownHooks();
+
+  const shutdown = async (signal: string) => {
+    console.log(`API received ${signal}; shutting down`);
+    await nest.close();
+    await shutdownTelemetry();
+    process.exit(0);
+  };
+  process.on('SIGINT', () => void shutdown('SIGINT'));
+  process.on('SIGTERM', () => void shutdown('SIGTERM'));
+
   await nest.listen(config.apiPort, config.apiHost);
-  // Logger already attached in createNexioraApp
   console.log(`Nexiora API listening on ${config.apiHost}:${config.apiPort}`);
 }
 

@@ -511,3 +511,68 @@ model CreatorOpportunity {
   @@index([userId, createdAt(sort: Desc)])
   @@index([topic])
 }
+
+enum OutboxStatus {
+  PENDING
+  DISPATCHED
+  FAILED
+}
+
+enum IndexSyncStatus {
+  PENDING
+  INDEXED
+  FAILED
+  TOMBSTONED
+}
+
+/// Durable DB→queue delivery for search execution and indexing jobs.
+model OutboxEvent {
+  id          String       @id @default(uuid()) @db.Uuid
+  aggregateId String
+  queueName   String
+  jobName     String
+  jobId       String
+  payload     Json
+  status      OutboxStatus @default(PENDING)
+  attempts    Int          @default(0)
+  lastError   String?
+  availableAt DateTime     @default(now())
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  dispatchedAt DateTime?
+
+  @@unique([queueName, jobId])
+  @@index([status, availableAt])
+  @@index([aggregateId, createdAt])
+}
+
+/// Canonical indexed documents shared by OpenSearch and Qdrant.
+model SourceDocument {
+  id             String         @id @db.Uuid
+  title          String
+  url            String
+  canonicalUrl   String         @unique
+  snippet        String         @db.Text
+  domain         String
+  sourceType     SourceType
+  isOfficial     Boolean        @default(false)
+  trustScore     Decimal        @db.Decimal(5, 2)
+  contentHash    String
+  publishedAt    DateTime?
+  author         String?
+  language       String?
+  openSearchStatus IndexSyncStatus @default(PENDING)
+  qdrantStatus     IndexSyncStatus @default(PENDING)
+  embeddingModel String?
+  embeddingDims  Int?
+  lastIndexedAt  DateTime?
+  lastEmbeddedAt DateTime?
+  tombstonedAt   DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@index([domain])
+  @@index([openSearchStatus, updatedAt])
+  @@index([qdrantStatus, updatedAt])
+  @@index([contentHash])
+}

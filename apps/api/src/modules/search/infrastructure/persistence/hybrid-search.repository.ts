@@ -138,40 +138,53 @@ export class HybridSearchRepository implements SearchRepositoryPort {
 
     if (await this.canUsePrisma()) {
       try {
-        await this.prisma.searchSession.update({
-          where: { id },
-          data: {
-            status: toPrismaStatus(data.status),
-            latencyMs: data.latencyMs,
-            answer: {
-              create: {
-                summary: data.answer.summary,
-                detailedMarkdown: data.answer.detailedMarkdown,
-                confidence: data.answer.confidence,
-                model: data.answer.model,
-                language: data.answer.language,
-                verificationStatus: data.answer.verificationStatus,
-                finishedAt: new Date(),
-                citations: {
-                  create: data.citations.map((c) => ({
-                    ordinal: c.ordinal,
-                    title: c.title,
-                    url: c.url,
-                    canonicalUrl: c.canonicalUrl,
-                    snippet: c.snippet,
-                    domain: c.domain,
-                    sourceType: toPrismaSourceType(c.sourceType),
-                    isOfficial: c.isOfficial,
-                    trustScore: c.trustScore,
-                    confidence: c.confidence,
-                    publishedAt: c.publishedAt ? new Date(c.publishedAt) : undefined,
-                    author: c.author,
-                    language: c.language,
-                  })),
-                },
+        await this.prisma.$transaction(async (tx) => {
+          await tx.searchSession.update({
+            where: { id },
+            data: {
+              status: toPrismaStatus(data.status),
+              latencyMs: data.latencyMs,
+            },
+          });
+
+          const existingAnswer = await tx.answer.findUnique({
+            where: { searchSessionId: id },
+            select: { id: true },
+          });
+          if (existingAnswer) {
+            await tx.citation.deleteMany({ where: { answerId: existingAnswer.id } });
+            await tx.answer.delete({ where: { id: existingAnswer.id } });
+          }
+
+          await tx.answer.create({
+            data: {
+              searchSessionId: id,
+              summary: data.answer.summary,
+              detailedMarkdown: data.answer.detailedMarkdown,
+              confidence: data.answer.confidence,
+              model: data.answer.model,
+              language: data.answer.language,
+              verificationStatus: data.answer.verificationStatus,
+              finishedAt: new Date(),
+              citations: {
+                create: data.citations.map((c) => ({
+                  ordinal: c.ordinal,
+                  title: c.title,
+                  url: c.url,
+                  canonicalUrl: c.canonicalUrl,
+                  snippet: c.snippet,
+                  domain: c.domain,
+                  sourceType: toPrismaSourceType(c.sourceType),
+                  isOfficial: c.isOfficial,
+                  trustScore: c.trustScore,
+                  confidence: c.confidence,
+                  publishedAt: c.publishedAt ? new Date(c.publishedAt) : undefined,
+                  author: c.author,
+                  language: c.language,
+                })),
               },
             },
-          },
+          });
         });
       } catch (error) {
         this.logger.warn(`Prisma complete failed: ${(error as Error).message}`);

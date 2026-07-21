@@ -2,11 +2,11 @@
   "name": "@nexiora/worker",
   "version": "0.1.0",
   "private": true,
-  "description": "Nexiora AI background workers (BullMQ) — Phase 0 bootstrap",
+  "description": "Nexiora AI background workers (BullMQ) — VPS consumer entry",
   "scripts": {
-    "dev": "tsx watch src/main.ts",
-    "build": "tsc -p tsconfig.json",
-    "start": "node dist/main.js",
+    "dev": "pnpm --filter @nexiora/api worker:dev",
+    "build": "pnpm --filter @nexiora/api build",
+    "start": "pnpm --filter @nexiora/api worker",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "echo \"lint: worker ok\"",
     "test": "vitest run --passWithNoTests",
@@ -15,6 +15,11 @@
   "dependencies": {
     "@nexiora/search-core": "workspace:*",
     "@nexiora/shared": "workspace:*",
+    "@nexiora/telemetry": "workspace:*",
+    "@opensearch-project/opensearch": "^3.6.0",
+    "@prisma/client": "^6.1.0",
+    "@qdrant/js-client-rest": "^1.18.0",
+    "bullmq": "^5.80.9",
     "ioredis": "^5.4.2",
     "pino": "^9.6.0"
   },
