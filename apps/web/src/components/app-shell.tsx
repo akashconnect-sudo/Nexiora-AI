@@ -6,7 +6,8 @@ import { useEffect, useState } from 'react';
 import { useTheme } from 'next-themes';
 import { Button } from '@nexiora/ui';
 import { siteConfig } from '@/content/site';
-import { clearSession, getSessionUser, authHeaders, type SessionUser } from '@/lib/session';
+import { getSessionUser, authHeaders, type SessionUser } from '@/lib/session';
+import { performLogout } from '@/lib/logout';
 import { apiUrl } from '@/lib/api-url';
 
 const NAV = [
@@ -175,9 +176,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   const isDark = mounted && resolvedTheme === 'dark';
   function logout() {
-    clearSession();
     setUser(null);
-    router.push('/');
+    void performLogout('/');
   }
 
   const nav = (

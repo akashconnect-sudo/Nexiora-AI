@@ -6,9 +6,16 @@ export function middleware(request: NextRequest) {
   const hasSession = request.cookies.get(SESSION_COOKIE)?.value === '1';
   const pathname = request.nextUrl.pathname;
   const isEntryRoute =
-    pathname === '/' || pathname.startsWith('/sign-in') || pathname.startsWith('/sign-up');
+    pathname === '/' ||
+    pathname.startsWith('/sign-in') ||
+    pathname.startsWith('/sign-up') ||
+    pathname.startsWith('/forgot-password');
 
   if (hasSession && isEntryRoute) {
+    // Allow password recovery even if a stale session cookie is present.
+    if (pathname.startsWith('/forgot-password')) {
+      return NextResponse.next();
+    }
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
@@ -26,6 +33,7 @@ export const config = {
     '/',
     '/sign-in/:path*',
     '/sign-up/:path*',
+    '/forgot-password',
     '/dashboard/:path*',
     '/creator/:path*',
     '/search/:path*',

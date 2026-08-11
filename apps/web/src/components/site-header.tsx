@@ -5,7 +5,8 @@ import { useEffect, useState } from 'react';
 import { useTheme } from 'next-themes';
 import { Button } from '@nexiora/ui';
 import { navLinks, siteConfig } from '@/content/site';
-import { clearSession, getSessionUser, type SessionUser } from '@/lib/session';
+import { getSessionUser, type SessionUser } from '@/lib/session';
+import { performLogout } from '@/lib/logout';
 
 export function SiteHeader() {
   const { setTheme, resolvedTheme } = useTheme();
@@ -76,9 +77,8 @@ export function SiteHeader() {
                 <Button
                   variant="secondary"
                   onClick={() => {
-                    clearSession();
                     setUser(null);
-                    window.location.href = '/';
+                    void performLogout('/');
                   }}
                 >
                   Log out
@@ -136,9 +136,8 @@ export function SiteHeader() {
               <Button
                 variant="secondary"
                 onClick={() => {
-                  clearSession();
                   setUser(null);
-                  window.location.href = '/';
+                  void performLogout('/');
                 }}
               >
                 Log out

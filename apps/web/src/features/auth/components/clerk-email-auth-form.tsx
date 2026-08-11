@@ -1,10 +1,12 @@
 'use client';
 
 import { FormEvent, useEffect, useState } from 'react';
-import { useSignIn, useSignUp } from '@clerk/nextjs';
+import Link from 'next/link';
+import { useAuth, useSignIn, useSignUp } from '@clerk/nextjs';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@nexiora/ui';
 import { safeNextPath } from '@/lib/auth-navigation';
+import { clerkErrorMessage, isAlreadySignedInError } from '../lib/clerk-errors';
 import { GoogleAuthButton } from './google-auth-button';
 
 type ClerkEmailAuthFormProps = {
@@ -14,6 +16,7 @@ type ClerkEmailAuthFormProps = {
 export function ClerkEmailAuthForm({ mode }: ClerkEmailAuthFormProps) {
   const { isLoaded: signInLoaded, signIn, setActive: setSignInActive } = useSignIn();
   const { isLoaded: signUpLoaded, signUp, setActive: setSignUpActive } = useSignUp();
+  const { isLoaded: authLoaded, isSignedIn } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [step, setStep] = useState<'email' | 'code'>('email');
@@ -27,6 +30,13 @@ export function ClerkEmailAuthForm({ mode }: ClerkEmailAuthFormProps) {
   const [resendIn, setResendIn] = useState(0);
 
   const loaded = mode === 'sign-in' ? signInLoaded : signUpLoaded;
+  const next = safeNextPath(searchParams?.get('next') ?? null);
+
+  useEffect(() => {
+    if (!authLoaded || !isSignedIn) return;
+    // Existing Clerk session after a partial logout — finish Nexiora session exchange.
+    router.replace(`/auth/complete?next=${encodeURIComponent(next)}`);
+  }, [authLoaded, isSignedIn, next, router]);
 
   useEffect(() => {
     if (resendIn <= 0) return;
@@ -34,9 +44,18 @@ export function ClerkEmailAuthForm({ mode }: ClerkEmailAuthFormProps) {
     return () => window.clearInterval(timer);
   }, [resendIn]);
 
+  async function finishSignIn(sessionId: string) {
+    await setSignInActive?.({ session: sessionId });
+    router.push(`/auth/complete?next=${encodeURIComponent(next)}`);
+  }
+
   async function sendCode(event?: FormEvent) {
     event?.preventDefault();
     if (!loaded) return;
+    if (isSignedIn) {
+      router.replace(`/auth/complete?next=${encodeURIComponent(next)}`);
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
@@ -49,9 +68,7 @@ export function ClerkEmailAuthForm({ mode }: ClerkEmailAuthFormProps) {
         if (attempt.status !== 'complete' || !attempt.createdSessionId) {
           throw new Error('Login needs an additional verification step.');
         }
-        await setSignInActive?.({ session: attempt.createdSessionId });
-        const next = safeNextPath(searchParams?.get('next') ?? null);
-        router.push(`/auth/complete?next=${encodeURIComponent(next)}`);
+        await finishSignIn(attempt.createdSessionId);
         return;
       } else {
         if (!signUp) throw new Error('Clerk sign-up is not ready.');
@@ -65,6 +82,10 @@ export function ClerkEmailAuthForm({ mode }: ClerkEmailAuthFormProps) {
       setStep('code');
       setResendIn(30);
     } catch (cause) {
+      if (isAlreadySignedInError(cause)) {
+        router.replace(`/auth/complete?next=${encodeURIComponent(next)}`);
+        return;
+      }
       setError(clerkErrorMessage(cause));
     } finally {
       setBusy(false);
@@ -77,22 +98,27 @@ export function ClerkEmailAuthForm({ mode }: ClerkEmailAuthFormProps) {
     setBusy(true);
     setError(null);
     try {
-      let sessionId: string | null = null;
       if (!signUp) throw new Error('Clerk sign-up is not ready.');
       const attempt = await signUp.attemptEmailAddressVerification({ code });
       if (attempt.status !== 'complete' || !attempt.createdSessionId) {
         throw new Error('Account setup needs additional information.');
       }
-      sessionId = attempt.createdSessionId;
-      await setSignUpActive?.({ session: sessionId });
-
-      const next = safeNextPath(searchParams?.get('next') ?? null);
+      await setSignUpActive?.({ session: attempt.createdSessionId });
       router.push(`/auth/complete?next=${encodeURIComponent(next)}`);
     } catch (cause) {
       setError(clerkErrorMessage(cause));
     } finally {
       setBusy(false);
     }
+  }
+
+  if (authLoaded && isSignedIn) {
+    return (
+      <div className="mt-6 space-y-3 text-center">
+        <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-nx-border border-t-nx-accent" />
+        <p className="text-sm text-nx-muted">Finishing your existing session…</p>
+      </div>
+    );
   }
 
   if (step === 'code') {
@@ -241,7 +267,12 @@ export function ClerkEmailAuthForm({ mode }: ClerkEmailAuthFormProps) {
               Password
             </label>
             {mode === 'sign-in' ? (
-              <span className="text-xs text-nx-muted">Minimum 8 characters</span>
+              <Link
+                href="/forgot-password"
+                className="text-xs font-medium text-nx-accent transition hover:underline"
+              >
+                Forgot password?
+              </Link>
             ) : null}
           </div>
           <div className="auth-input-shell mt-2">
@@ -316,18 +347,5 @@ export function ClerkEmailAuthForm({ mode }: ClerkEmailAuthFormProps) {
         </Button>
       </form>
     </div>
-  );
-}
-
-function clerkErrorMessage(cause: unknown): string {
-  const error = cause as {
-    errors?: Array<{ longMessage?: string; message?: string }>;
-    message?: string;
-  };
-  return (
-    error.errors?.[0]?.longMessage ??
-    error.errors?.[0]?.message ??
-    error.message ??
-    'Authentication could not be completed.'
   );
 }

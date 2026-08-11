@@ -67,6 +67,23 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return nestProxy;
   },
+  async headers() {
+    return [
+      {
+        source: '/sw.js',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-cache, no-store, must-revalidate',
+          },
+          {
+            key: 'Service-Worker-Allowed',
+            value: '/',
+          },
+        ],
+      },
+    ];
+  },
   outputFileTracingIncludes: {
     '/api/*': nestTraceGlobs,
     '/api/**': nestTraceGlobs,

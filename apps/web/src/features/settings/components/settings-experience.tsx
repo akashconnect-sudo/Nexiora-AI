@@ -5,7 +5,8 @@ import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { Button } from '@nexiora/ui';
-import { authHeaders, clearSession, getSessionUser, type SessionUser } from '@/lib/session';
+import { authHeaders, getSessionUser, type SessionUser } from '@/lib/session';
+import { performLogout } from '@/lib/logout';
 import { DEFAULT_PREFS, loadPrefs, savePrefs, type UserPrefs } from '@/lib/prefs';
 import { apiUrl } from '@/lib/api-url';
 
@@ -125,9 +126,14 @@ export function SettingsExperience({ initialSection = 'account' }: { initialSect
     setBillingBusy(true);
     setBillingMessage(null);
     try {
+      const token = authHeaders();
+      if (!('Authorization' in token)) {
+        setBillingMessage('Your session expired. Please log in again, then choose a plan.');
+        return;
+      }
       const response = await fetch(apiUrl('/v1/billing/checkout'), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        headers: { 'Content-Type': 'application/json', ...token },
         body: JSON.stringify({ planId }),
       });
       const body = (await response.json().catch(() => ({}))) as {
@@ -142,8 +148,13 @@ export function SettingsExperience({ initialSection = 'account' }: { initialSect
         url?: string;
         message?: string;
         detail?: string;
+        title?: string;
         error?: string;
       };
+      if (response.status === 401 || response.status === 403) {
+        setBillingMessage('Your session expired. Please log in again, then choose a plan.');
+        return;
+      }
       if (response.ok && body.mode === 'razorpay' && body.keyId && body.orderId) {
         await openRazorpayCheckout({
           keyId: body.keyId,
@@ -161,7 +172,15 @@ export function SettingsExperience({ initialSection = 'account' }: { initialSect
         window.location.assign(body.url);
         return;
       }
-      setBillingMessage(body.detail ?? body.message ?? body.error ?? 'Checkout is not available.');
+      setBillingMessage(
+        body.detail ??
+          body.message ??
+          body.title ??
+          body.error ??
+          (response.ok
+            ? 'Checkout is not available right now. Please try again in a moment.'
+            : `Could not start checkout (${response.status}). Please try again.`),
+      );
     } catch (error) {
       setBillingMessage((error as Error).message || 'Checkout is not available.');
     } finally {
@@ -325,8 +344,7 @@ export function SettingsExperience({ initialSection = 'account' }: { initialSect
                 variant="secondary"
                 className="mt-5"
                 onClick={() => {
-                  clearSession();
-                  router.push('/');
+                  void performLogout('/');
                 }}
               >
                 Sign out of this device

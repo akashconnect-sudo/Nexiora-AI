@@ -9,7 +9,7 @@ export const metadata = buildMetadata({
 });
 
 type SignInPageProps = {
-  searchParams: Promise<{ next?: string }>;
+  searchParams: Promise<{ next?: string; reset?: string }>;
 };
 
 export default async function SignInPage({ searchParams }: SignInPageProps) {
@@ -19,6 +19,7 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
       mode="sign-in"
       googleEnabled={Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY)}
       nextPath={params.next}
+      passwordResetSuccess={params.reset === '1'}
     />
   );
 }

@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { Button } from '@nexiora/ui';
-import { clearSession, getSessionUser, type SessionUser } from '@/lib/session';
+import { getSessionUser, type SessionUser } from '@/lib/session';
+import { performLogout } from '@/lib/logout';
 import { DEFAULT_PREFS, loadPrefs, savePrefs, type UserPrefs } from '@/lib/prefs';
 
 export function SettingsPanel() {
@@ -150,8 +151,7 @@ export function SettingsPanel() {
           variant="secondary"
           className="mt-4"
           onClick={() => {
-            clearSession();
-            router.push('/');
+            void performLogout('/');
           }}
         >
           Log out

@@ -19,6 +19,16 @@ export function GoogleAuthButton({ nextPath }: { nextPath: string | null }) {
         redirectUrlComplete: `/auth/complete?next=${encodeURIComponent(next)}`,
       });
     } catch (cause) {
+      const message = ((cause as Error).message || '').toLowerCase();
+      if (
+        message.includes('already signed in') ||
+        message.includes('session_exists') ||
+        message.includes('already logged')
+      ) {
+        const next = safeNextPath(nextPath);
+        window.location.assign(`/auth/complete?next=${encodeURIComponent(next)}`);
+        return;
+      }
       setError((cause as Error).message || 'Google sign-in could not start.');
     }
   }

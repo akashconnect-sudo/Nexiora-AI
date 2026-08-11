@@ -2,16 +2,42 @@
   "name": "Nexiora AI",
   "short_name": "Nexiora",
   "description": "AI Knowledge Platform — Nova Search",
+  "id": "/",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "any",
   "background_color": "#F4F6F8",
   "theme_color": "#0F766E",
+  "categories": ["productivity", "education", "utilities"],
   "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
     {
       "src": "/icon.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "New search",
+      "short_name": "Search",
+      "description": "Start a new evidence-backed search",
+      "url": "/search",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Live news",
+      "short_name": "News",
+      "description": "Open live news briefings",
+      "url": "/news",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
     }
   ]
 }

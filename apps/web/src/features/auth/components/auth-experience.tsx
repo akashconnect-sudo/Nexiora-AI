@@ -5,9 +5,15 @@ type AuthExperienceProps = {
   mode: 'sign-in' | 'sign-up';
   googleEnabled: boolean;
   nextPath?: string | null;
+  passwordResetSuccess?: boolean;
 };
 
-export function AuthExperience({ mode, googleEnabled, nextPath = null }: AuthExperienceProps) {
+export function AuthExperience({
+  mode,
+  googleEnabled,
+  nextPath = null,
+  passwordResetSuccess = false,
+}: AuthExperienceProps) {
   const isSignUp = mode === 'sign-up';
   const signInHref = nextPath ? `/sign-in?next=${encodeURIComponent(nextPath)}` : '/sign-in';
   const signUpHref = nextPath ? `/sign-up?next=${encodeURIComponent(nextPath)}` : '/sign-up';
@@ -59,6 +65,15 @@ export function AuthExperience({ mode, googleEnabled, nextPath = null }: AuthExp
                 Create account
               </Link>
             </div>
+
+            {passwordResetSuccess && !isSignUp ? (
+              <p
+                className="mt-6 rounded-xl border border-nx-accent/30 bg-nx-accent-soft/40 px-3 py-2.5 text-sm text-nx-ink"
+                role="status"
+              >
+                Password updated. Sign in with your new password.
+              </p>
+            ) : null}
 
             <p className="mt-7 text-xs font-semibold uppercase tracking-[0.18em] text-nx-accent">
               {isSignUp ? 'Start your workspace' : 'Welcome back'}

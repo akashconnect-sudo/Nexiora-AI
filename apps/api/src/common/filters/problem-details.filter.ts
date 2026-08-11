@@ -51,6 +51,20 @@ export class ProblemDetailsFilter implements ExceptionFilter {
     }
 
     this.logger.error(exception);
+
+    const prismaMessage = prismaConnectivityMessage(exception);
+    if (prismaMessage) {
+      response.status(HttpStatus.SERVICE_UNAVAILABLE).json({
+        type: 'https://api.nexiora.ai/errors/database_unavailable',
+        title: 'Database unavailable',
+        status: 503,
+        detail: prismaMessage,
+        instance: request.url,
+        code: 'PROVIDER_UNAVAILABLE',
+      });
+      return;
+    }
+
     response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
       type: 'https://api.nexiora.ai/errors/internal',
       title: 'Internal server error',
@@ -60,4 +74,27 @@ export class ProblemDetailsFilter implements ExceptionFilter {
       code: 'INTERNAL',
     });
   }
+}
+
+function prismaConnectivityMessage(exception: unknown): string | null {
+  const message =
+    exception && typeof exception === 'object' && 'message' in exception
+      ? String((exception as { message: unknown }).message)
+      : String(exception ?? '');
+  const name =
+    exception && typeof exception === 'object' && 'name' in exception
+      ? String((exception as { name: unknown }).name)
+      : '';
+
+  const looksLikeDbOutage =
+    name.includes('PrismaClientInitializationError') ||
+    name.includes('PrismaClientKnownRequestError') ||
+    /can't reach database server/i.test(message) ||
+    /timed out fetching a new connection from the connection pool/i.test(message) ||
+    /server has closed the connection/i.test(message) ||
+    /P1001|P1017|P2024/.test(message);
+
+  if (!looksLikeDbOutage) return null;
+
+  return 'Database is unreachable. Check DATABASE_URL / Supabase project status, then try again.';
 }
